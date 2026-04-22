@@ -10,6 +10,8 @@
 
 Give the Arbor tool the same sidebar treatment ChalkAI has, and migrate all remaining Arbor pages from old Tailwind utility classes to the project's CSS token design system. After this work, every page in the platform will use the same visual language.
 
+The existing `ArborToolbar` creates an extra top bar that ChalkAI doesn't have. This causes a visible layout jump when navigating between the two tools. Removing it entirely (and moving its content into the sidebar) eliminates the jump.
+
 ---
 
 ## What's changing
@@ -30,12 +32,21 @@ Structure (top → bottom):
 - **View as (role selector)** — small `side-group` below Workspace, contains a native `<select>` styled with CSS tokens (`--paper`, `--line-2`, `--ink`). Reads `role` from URL search params and pushes `?role=` on change. This replaces the old `ArborToolbar` role selector.
 - **User meta** — `side-meta` / `avatar` classes at the bottom, reads session from `mockSession`
 
+The school name and last-import date (previously shown in `ArborToolbar`) move into the sidebar itself — displayed as small secondary text below the brand mark, e.g.:
+
+```
+● Arbor AI
+  Greenfield Primary  ·  22 Apr
+```
+
+This keeps that context visible without adding any extra bar above the main content area.
+
 Props:
 ```ts
 interface ArborSidebarProps {
-  role:       UserRole          // current role for the select
+  role:       UserRole
   schoolName: string
-  lastUpload: string            // shown in topbar, passed through
+  lastUpload: string   // displayed in sidebar below brand
 }
 ```
 
@@ -51,7 +62,7 @@ interface ArborSidebarProps {
 - Pass `role`, `schoolName`, `lastUpload` to `ArborSidebar`
 - Remove `ArborToolbar` import
 
-The topbar inside `DashboardClient` (breadcrumb + school/date badge) stays — it already uses inline CSS token styles.
+No extra top bar is added above `DashboardClient` — the school name and last-import info live in the sidebar. `DashboardClient`'s existing internal topbar (breadcrumb + mode tabs) stays as-is.
 
 ---
 
@@ -86,7 +97,7 @@ The topbar inside `DashboardClient` (breadcrumb + school/date badge) stays — i
 
 ### 5. Deleted — `ArborToolbar` (or left unused)
 
-`components/arbor/ArborToolbar.tsx` will no longer be imported anywhere. It can be deleted. The role-selector functionality moves to `ArborSidebar`. The school name and last-upload date move to the topbar inside the main content area.
+`components/arbor/ArborToolbar.tsx` will no longer be imported anywhere and must be deleted. The role-selector moves to `ArborSidebar`. The school name and last-upload date display in the sidebar below the brand. No replacement top bar is added — this is intentional to eliminate the layout jump between tools.
 
 ---
 
