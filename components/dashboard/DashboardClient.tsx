@@ -159,9 +159,6 @@ export function DashboardClient({
     openEdit, closeEdit, togglePanel, save, reset, isVisible,
   } = useDashboardConfig(role)
 
-  function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    startTransition(() => router.push(`/arbor/dashboard?role=${e.target.value}&year=${yearGroup}`))
-  }
   function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
     startTransition(() => router.push(`/arbor/dashboard?role=${role}&year=${e.target.value}`))
   }
@@ -215,17 +212,6 @@ export function DashboardClient({
                 {YEAR_GROUPS.map((yg) => <option key={yg} value={yg}>{yg}</option>)}
               </select>
             )}
-
-            <select
-              value={role}
-              onChange={handleRoleChange}
-              className="input"
-              style={{ width: 'auto', padding: '8px 14px', fontSize: 13 }}
-            >
-              <option value="slt">Headteacher</option>
-              <option value="hoy">Year Lead</option>
-              <option value="teacher">Class Teacher</option>
-            </select>
 
             <button
               onClick={() => router.push('/arbor/upload' as any)}
