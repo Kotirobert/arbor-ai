@@ -29,21 +29,38 @@ export function SkeletonRow() {
 
 export function SkeletonDashboard() {
   return (
-    <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-5">
-      <Skeleton className="h-7 w-48" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-card">
-          <Skeleton className="h-4 w-48 mb-4" />
-          {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
+    <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
+      <div style={{ padding: '32px 32px 48px' }}>
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ width: 160, height: 12, background: 'var(--line-2)', borderRadius: 6, marginBottom: 14 }} />
+          <div style={{ width: 320, height: 36, background: 'var(--line)', borderRadius: 6 }} />
         </div>
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-card space-y-3">
-          <Skeleton className="h-4 w-28 mb-4" />
-          <Skeleton className="h-32 w-full" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 20, background: 'var(--paper-2)' }}>
+              <div style={{ width: 60, height: 10, background: 'var(--line-2)', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ width: 48, height: 28, background: 'var(--line)', borderRadius: 4, marginBottom: 8 }} />
+              <div style={{ width: 80, height: 9, background: 'var(--line-2)', borderRadius: 4 }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {[5, 3].map((rows, i) => (
+            <div key={i} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 20, background: 'var(--paper-2)' }}>
+              <div style={{ width: 120, height: 11, background: 'var(--line-2)', borderRadius: 4, marginBottom: 16 }} />
+              {Array.from({ length: rows }).map((_, j) => (
+                <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderTop: j === 0 ? 'none' : '1px solid var(--line)' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--line-2)', flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ width: 120, height: 10, background: 'var(--line-2)', borderRadius: 4, marginBottom: 6 }} />
+                    <div style={{ width: 80, height: 8, background: 'var(--line)', borderRadius: 4 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </main>
   )
 }
