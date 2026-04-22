@@ -2,7 +2,6 @@
 
 import { useTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useDashboardConfig } from '@/hooks/useDashboardConfig'
@@ -15,7 +14,6 @@ import { AuditLog } from '@/components/dashboard/AuditLog'
 import { SubjectAttainmentPanel } from '@/components/dashboard/SubjectAttainmentPanel'
 import { getSchoolData } from '@/lib/schoolStore'
 import { getPriorityPupils, getDashboardStats, getMockDataSource } from '@/lib/data/queries'
-import { getSession as getMockSession } from '@/lib/auth/mockSession'
 import type {
   UserRole, DashboardStats, Pupil,
   AttendanceSummary, BehaviourSummary, RiskProfile,
@@ -59,12 +57,6 @@ interface DashboardClientProps {
 }
 
 // ── Constants ─────────────────────────────────────────────────
-
-const ROLE_STYLES: Record<UserRole, string> = {
-  slt:     'bg-brand-50 text-brand-600',
-  hoy:     'bg-amber-50 text-amber-700',
-  teacher: 'bg-blue-50  text-blue-700',
-}
 
 const YEAR_GROUPS = [
   'Reception', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6',
@@ -168,10 +160,10 @@ export function DashboardClient({
   } = useDashboardConfig(role)
 
   function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    startTransition(() => router.push(`/dashboard?role=${e.target.value}&year=${yearGroup}`))
+    startTransition(() => router.push(`/arbor/dashboard?role=${e.target.value}&year=${yearGroup}`))
   }
   function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    startTransition(() => router.push(`/dashboard?role=${role}&year=${e.target.value}`))
+    startTransition(() => router.push(`/arbor/dashboard?role=${role}&year=${e.target.value}`))
   }
   function handleSave() { save(); toast('Dashboard layout saved', 'success') }
   function handleReset() { reset(); toast('Layout reset to default') }
@@ -186,64 +178,11 @@ export function DashboardClient({
     !isVisible('attendanceBars') && !isVisible('attainmentInsights') &&
     !isVisible('subjectAttainment') && !isVisible('auditLog')
 
-  const session = typeof window !== 'undefined' ? getMockSession() : null
-  const initials = session ? `${session.firstName?.[0] ?? ''}${session.lastName?.[0] ?? ''}`.toUpperCase() || 'TC' : 'TC'
-
   return (
-    <div className="app">
-      {/* Sidebar */}
-      <aside className="app__sidebar">
-        <div className="nav__brand" style={{ fontSize: 22 }}>
-          <span className="nav__brand-mark" />
-          <span>ChalkAI</span>
-        </div>
-
-        <div className="tool-switch">
-          <Link href="/chalkai" className="tool-switch__btn">
-            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
-              <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
-            </svg>
-            ChalkAI
-          </Link>
-          <button className="tool-switch__btn tool-switch__btn--active">
-            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
-              <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
-            </svg>
-            Arbor AI
-          </button>
-        </div>
-
-        <div className="side-group">
-          <div className="side-group__title">Arbor AI</div>
-          <Link href="/arbor/dashboard" className="side-link side-link--active">
-            <svg className="ico side-link__icon" viewBox="0 0 24 24">
-              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-            </svg>
-            Dashboard
-          </Link>
-          <Link href="/arbor/upload" className="side-link">
-            <svg className="ico side-link__icon" viewBox="0 0 24 24">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-            </svg>
-            Upload data
-          </Link>
-        </div>
-
-        <div className="side-meta">
-          <div className="avatar">{initials}</div>
-          <div>
-            <div style={{ fontWeight: 500 }}>{session ? `${session.firstName} ${session.lastName}`.trim() : 'School lead'}</div>
-            <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>Arbor AI</div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main */}
-      <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
-      <div style={{ padding: '32px 32px 48px' }}>
-      <div className={cn(editMode ? 'flex gap-6 items-start' : 'block')}>
-      <div className="flex-1 min-w-0 space-y-5">
+    <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
+    <div style={{ padding: '32px 32px 48px' }}>
+    <div className={cn(editMode ? 'flex gap-6 items-start' : 'block')}>
+    <div className="flex-1 min-w-0 space-y-5">
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
@@ -382,9 +321,8 @@ export function DashboardClient({
           onClose={closeEdit}
         />
       )}
-      </div>
-      </div>
-      </main>
     </div>
+    </div>
+    </main>
   )
 }
