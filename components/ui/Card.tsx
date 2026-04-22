@@ -11,7 +11,7 @@ const PADDING = { none: '', sm: 'p-4', md: 'p-5', lg: 'p-6' } as const
 
 export function Card({ children, className, padding = 'md' }: CardProps) {
   return (
-    <div className={cn('bg-white rounded-2xl border border-stone-200 shadow-card', PADDING[padding], className)}>
+    <div className={cn('card', PADDING[padding], className)}>
       {children}
     </div>
   )
@@ -22,13 +22,13 @@ export function CardHeader({ children, className }: { children: ReactNode; class
 }
 
 export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
-  return <h3 className={cn('text-sm font-semibold text-stone-900', className)}>{children}</h3>
+  return <h3 className={cn('text-sm font-semibold', className)} style={{ color: 'var(--ink)' }}>{children}</h3>
 }
 
 export function CardSubtitle({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn('text-xs text-stone-400 mt-0.5', className)}>{children}</p>
+  return <p className={cn('text-xs mt-0.5', className)} style={{ color: 'var(--ink-3)' }}>{children}</p>
 }
 
 export function CardDivider() {
-  return <div className="h-px bg-stone-100 -mx-5 my-4" />
+  return <div style={{ height: 1, background: 'var(--line)', margin: '16px -28px' }} />
 }

@@ -20,7 +20,7 @@ export function PriorityPanel({ rows, limit = 6 }: PriorityPanelProps) {
         <CardSubtitle>{rows.length} students flagged in your current view</CardSubtitle>
       </CardHeader>
 
-      <div className="divide-y divide-stone-100">
+      <div>
         {shown.map((row) => {
           const { pupil, risk, attendance } = row
           const { bg, text } = pupil.avatarColor
@@ -29,39 +29,44 @@ export function PriorityPanel({ rows, limit = 6 }: PriorityPanelProps) {
           return (
             <Link
               key={pupil.id}
-              href={`/pupil/${pupil.id}`}
-              className="flex items-center gap-3 py-2.5 -mx-5 px-5 hover:bg-stone-50 transition-colors group"
+              href={`/arbor/pupil/${pupil.id}` as any}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 0', borderBottom: '1px solid var(--line)',
+                textDecoration: 'none', transition: 'background 0.12s ease',
+              }}
+              className="group"
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
-                style={{ background: bg, color: text }}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 600, flexShrink: 0, background: bg, color: text,
+                }}
               >
                 {pupil.initials}
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-stone-900 truncate">{pupil.fullName}</span>
-                  <span className="text-xs text-stone-400 font-normal">{pupil.className}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pupil.fullName}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{pupil.className}</span>
                 </div>
-                <p className="text-xs text-stone-500 truncate">{primaryReason}</p>
+                <p style={{ fontSize: 12, color: 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{primaryReason}</p>
               </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <Badge variant={risk.riskLevel === 'high' ? 'red' : 'amber'}>
                   {risk.riskLevel === 'high' ? 'High' : 'Medium'}
                 </Badge>
-                <span className="text-xs text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  View →
-                </span>
               </div>
             </Link>
           )
         })}
 
         {rows.length > limit && (
-          <div className="pt-3">
-            <Link href="/dashboard" className="text-xs text-brand-500 font-medium hover:underline">
+          <div style={{ paddingTop: 12 }}>
+            <Link href={'/arbor/dashboard' as any} style={{ fontSize: 13, color: 'var(--chalk-green)', fontWeight: 500 }}>
               View {rows.length - limit} more students →
             </Link>
           </div>

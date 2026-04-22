@@ -2,6 +2,7 @@
 
 import { useTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useDashboardConfig } from '@/hooks/useDashboardConfig'
@@ -14,6 +15,7 @@ import { AuditLog } from '@/components/dashboard/AuditLog'
 import { SubjectAttainmentPanel } from '@/components/dashboard/SubjectAttainmentPanel'
 import { getSchoolData } from '@/lib/schoolStore'
 import { getPriorityPupils, getDashboardStats, getMockDataSource } from '@/lib/data/queries'
+import { getSession as getMockSession } from '@/lib/auth/mockSession'
 import type {
   UserRole, DashboardStats, Pupil,
   AttendanceSummary, BehaviourSummary, RiskProfile,
@@ -184,38 +186,92 @@ export function DashboardClient({
     !isVisible('attendanceBars') && !isVisible('attainmentInsights') &&
     !isVisible('subjectAttainment') && !isVisible('auditLog')
 
+  const session = typeof window !== 'undefined' ? getMockSession() : null
+  const initials = session ? `${session.firstName?.[0] ?? ''}${session.lastName?.[0] ?? ''}`.toUpperCase() || 'TC' : 'TC'
+
   return (
-    <div className={cn(
-      'max-w-screen-xl mx-auto px-6 py-6',
-      editMode ? 'flex gap-6 items-start' : 'block',
-    )}>
-      <main className="flex-1 min-w-0 space-y-5">
+    <div className="app">
+      {/* Sidebar */}
+      <aside className="app__sidebar">
+        <div className="nav__brand" style={{ fontSize: 22 }}>
+          <span className="nav__brand-mark" />
+          <span>ChalkAI</span>
+        </div>
+
+        <div className="tool-switch">
+          <Link href="/chalkai" className="tool-switch__btn">
+            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
+              <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
+            </svg>
+            ChalkAI
+          </Link>
+          <button className="tool-switch__btn tool-switch__btn--active">
+            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
+              <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
+            </svg>
+            Arbor AI
+          </button>
+        </div>
+
+        <div className="side-group">
+          <div className="side-group__title">Arbor AI</div>
+          <Link href="/arbor/dashboard" className="side-link side-link--active">
+            <svg className="ico side-link__icon" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Dashboard
+          </Link>
+          <Link href="/arbor/upload" className="side-link">
+            <svg className="ico side-link__icon" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+            Upload data
+          </Link>
+        </div>
+
+        <div className="side-meta">
+          <div className="avatar">{initials}</div>
+          <div>
+            <div style={{ fontWeight: 500 }}>{session ? `${session.firstName} ${session.lastName}`.trim() : 'School lead'}</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>Arbor AI</div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
+      <div style={{ padding: '32px 32px 48px' }}>
+      <div className={cn(editMode ? 'flex gap-6 items-start' : 'block')}>
+      <div className="flex-1 min-w-0 space-y-5">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-stone-900">School overview</h1>
-              {dataSource === 'uploaded' && (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-200">
-                  Live data
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-stone-400 mt-0.5">
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Arbor AI · School overview</div>
+            <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
+              A calm view of your <i style={{ color: 'var(--chalk-green)' }}>school, today.</i>
+            </h1>
+            <p style={{ color: 'var(--ink-2)', fontSize: 14, marginTop: 10 }}>
               {scopeLabel}
-              {lastImport && (
-                <span className="ml-2 text-stone-300">· imported {lastImport}</span>
-              )}
+              {lastImport && <span style={{ color: 'var(--ink-3)' }}> · imported {lastImport}</span>}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {dataSource === 'uploaded' && (
+              <span className="tag tag--green">
+                <span className="tag__dot" />
+                Live data
+              </span>
+            )}
+
             {role !== 'slt' && (
               <select
                 value={yearGroup}
                 onChange={handleYearChange}
-                className="text-xs font-medium px-3 py-1.5 rounded-full border border-stone-200 bg-white text-stone-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input"
+                style={{ width: 'auto', padding: '8px 14px', fontSize: 13 }}
               >
                 {YEAR_GROUPS.map((yg) => <option key={yg} value={yg}>{yg}</option>)}
               </select>
@@ -224,22 +280,19 @@ export function DashboardClient({
             <select
               value={role}
               onChange={handleRoleChange}
-              className={cn(
-                'text-xs font-medium px-3 py-1.5 rounded-full border-0 cursor-pointer',
-                'focus:outline-none focus:ring-2 focus:ring-brand-500',
-                ROLE_STYLES[role],
-              )}
+              className="input"
+              style={{ width: 'auto', padding: '8px 14px', fontSize: 13 }}
             >
-              <option value="slt">Role: Headteacher</option>
-              <option value="hoy">Role: Year Lead</option>
-              <option value="teacher">Role: Class Teacher</option>
+              <option value="slt">Headteacher</option>
+              <option value="hoy">Year Lead</option>
+              <option value="teacher">Class Teacher</option>
             </select>
 
             <button
-              onClick={() => router.push('/upload')}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 transition-colors"
+              onClick={() => router.push('/arbor/upload' as any)}
+              className="btn btn--ghost btn--sm"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="ico" viewBox="0 0 24 24">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
               </svg>
               {dataSource === 'uploaded' ? 'Re-upload' : 'Upload data'}
@@ -247,37 +300,23 @@ export function DashboardClient({
 
             <button
               onClick={editMode ? closeEdit : openEdit}
-              className={cn(
-                'inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all duration-150',
-                editMode
-                  ? 'bg-stone-900 text-white border-stone-900'
-                  : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300 hover:bg-stone-50',
-              )}
+
+              className={`btn btn--sm ${editMode ? 'btn--primary' : 'btn--ghost'}`}
             >
-              {editMode ? (
-                <>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  Exit customise
-                </>
-              ) : (
-                <>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Customise
-                </>
-              )}
+              {editMode ? 'Exit customise' : 'Customise'}
             </button>
           </div>
         </div>
 
         {/* Data source banner when using mock data */}
         {dataSource === 'mock' && (
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-            <p className="text-xs text-amber-700">
-              Showing demo data. Upload a CSV file to see your school's real data.
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 10, background: 'var(--amber-soft)', border: '1px solid var(--amber-line)' }}>
+            <p style={{ fontSize: 13, color: 'var(--amber)', margin: 0 }}>
+              Showing demo data. Upload a CSV file to see your school&rsquo;s real data.
             </p>
             <button
-              onClick={() => router.push('/upload')}
-              className="text-xs font-medium text-amber-700 underline hover:no-underline ml-4 flex-shrink-0"
+              onClick={() => router.push('/arbor/upload' as any)}
+              style={{ fontSize: 13, fontWeight: 500, color: 'var(--amber)', textDecoration: 'underline', background: 'none', border: 0, cursor: 'pointer', marginLeft: 16, flexShrink: 0 }}
             >
               Upload now →
             </button>
@@ -324,20 +363,14 @@ export function DashboardClient({
 
         {/* Empty state */}
         {noContentVisible && (
-          <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center">
-            <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round">
-                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              </svg>
-            </div>
-            <p className="text-sm font-medium text-stone-700 mb-1">All panels are hidden</p>
-            <p className="text-xs text-stone-400">Use the customise panel to turn some back on.</p>
+          <div className="card" style={{ padding: 48, textAlign: 'center' }}>
+            <p style={{ fontWeight: 500, marginBottom: 4 }}>All panels are hidden</p>
+            <p style={{ fontSize: 13, color: 'var(--ink-2)' }}>Use the customise panel to turn some back on.</p>
           </div>
         )}
-      </main>
+      </div>
 
-      {/* Customise sidebar */}
+      {/* Customise sidebar (inline, alongside content) */}
       {editMode && (
         <CustomiseSidebar
           role={role}
@@ -349,6 +382,9 @@ export function DashboardClient({
           onClose={closeEdit}
         />
       )}
+      </div>
+      </div>
+      </main>
     </div>
   )
 }

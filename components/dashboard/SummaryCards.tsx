@@ -10,15 +10,15 @@ export function SummaryCards({ stats }: { stats: DashboardStats }) {
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
       {cards.map((card) => (
-        <div key={card.label} className="bg-white rounded-2xl border border-stone-200 shadow-card p-5">
-          <div className="flex items-center gap-1.5 mb-2">
+        <div key={card.label} className="card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', card.dot)} />
-            <span className="text-xs font-medium text-stone-500">{card.label}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-2)' }}>{card.label}</span>
           </div>
-          <div className="text-3xl font-semibold text-stone-900 tabular-nums">{card.value}</div>
-          <div className="text-xs text-stone-400 mt-1">{card.sub}</div>
+          <div style={{ fontFamily: 'var(--f-display)', fontSize: 40, lineHeight: 1, letterSpacing: '-0.02em', fontWeight: 400, color: 'var(--ink)' }}>{card.value}</div>
+          <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 4 }}>{card.sub}</div>
         </div>
       ))}
     </div>

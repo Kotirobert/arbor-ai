@@ -10,23 +10,17 @@ interface BadgeProps {
 }
 
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  red:    'bg-red-50    text-red-700    border-red-200',
-  amber:  'bg-amber-50  text-amber-700  border-amber-200',
-  blue:   'bg-blue-50   text-blue-700   border-blue-200',
-  green:  'bg-green-50  text-green-700  border-green-200',
-  purple: 'bg-purple-50 text-purple-700 border-purple-200',
-  gray:   'bg-stone-100 text-stone-600  border-stone-200',
+  red:    'tag tag--red',
+  amber:  'tag tag--amber',
+  blue:   'tag tag--blue',
+  green:  'tag tag--green',
+  purple: 'tag',
+  gray:   'tag',
 }
 
 export function Badge({ variant = 'gray', children, className }: BadgeProps) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border',
-        VARIANT_STYLES[variant],
-        className,
-      )}
-    >
+    <span className={cn(VARIANT_STYLES[variant], className)}>
       {children}
     </span>
   )
