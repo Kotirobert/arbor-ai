@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Route } from 'next'
 
 export function FeatureGrid() {
   return (
@@ -63,7 +64,7 @@ export function FeatureGrid() {
             </div>
 
             <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
-              <Link href="/chalkai" className="btn btn--ghost">
+              <Link href={"/chalkai" as Route} className="btn btn--ghost">
                 Open assistant
                 <svg className="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </Link>

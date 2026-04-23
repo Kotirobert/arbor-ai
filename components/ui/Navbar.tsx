@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import type { Route } from 'next'
 import type { UserRole } from '@/types'
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -32,7 +33,7 @@ export function Navbar({
 }: NavbarProps) {
   const pathname = usePathname()
 
-  const NAV_LINKS = [
+  const NAV_LINKS: { href: Route; label: string }[] = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/upload',    label: 'Upload'    },
   ]

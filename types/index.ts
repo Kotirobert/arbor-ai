@@ -122,6 +122,47 @@ export interface ApiError {
 
 export type ApiResult<T> = ApiResponse<T> | ApiError
 
+// ── ChalkAI resource types ────────────────────────────────────
+
+export type ResourceType = 'lesson_plan' | 'worksheet' | 'quiz' | 'parent_email'
+
+export interface SavedResource {
+  id:        string
+  type:      ResourceType
+  title:     string
+  topic:     string
+  yearGroup: string
+  subject:   string | undefined
+  content:   string
+  createdAt: string
+}
+
+// ── Auth / session ────────────────────────────────────────────
+
+export type ChalkAiTool = 'chalkai' | 'arbor'
+
+export interface ChalkAiSession {
+  email:      string
+  firstName:  string
+  lastName:   string
+  role:       UserRole
+  signedInAt: string
+}
+
+export interface TeacherProfile {
+  firstName:    string
+  lastName:     string
+  email:        string
+  country:      string
+  curriculum:   string
+  phase:        string
+  yearGroups:   string[]
+  subjects:     string[]
+  classProfile: string[]
+  lessonLength: string
+  outputStyle:  string
+}
+
 // ── Subject profile (attainment per pupil) ────────────────────
 // Exported here so csvParser, queries, and components all share one definition
 

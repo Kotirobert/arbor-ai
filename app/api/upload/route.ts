@@ -66,7 +66,3 @@ export async function POST(req: Request) {
   }
 }
 
-// Allow larger CSV files (default Next.js limit is 4MB)
-export const config = {
-  api: { bodyParser: { sizeLimit: '10mb' } },
-}

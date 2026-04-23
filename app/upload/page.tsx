@@ -12,11 +12,11 @@ import type { ParsedSchoolData } from '@/lib/csvParser'
 type UploadState = 'idle' | 'uploading' | 'success' | 'error'
 
 interface UploadStats {
-  pupils:           number
-  yearGroups:       number
+  pupils:            number
+  yearGroups:        number
   persistentAbsence: number
-  avgAttendance:    number
-  subjects:         number
+  avgAttendance:     number
+  subjects:          number
 }
 
 interface UploadResult {
@@ -42,13 +42,14 @@ const STEPS = [
 // ── Component ─────────────────────────────────────────────────
 
 export default function UploadPage() {
-  const router = useRouter()
+  const router  = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [state,          setState]         = useState<UploadState>('idle')
   const [isDragging,     setIsDragging]    = useState(false)
-  const [selectedFile,   setSelectedFile]  = useState<File | null>(null)
+  const [selectedFiles,  setSelectedFiles] = useState<File[]>([])
   const [stepIndex,      setStepIndex]     = useState(-1)
+  const [currentFileIdx, setCurrentFileIdx] = useState(0)
   const [result,         setResult]        = useState<UploadResult | null>(null)
   const [errorMessage,   setErrorMessage]  = useState('')
   const [warnings,       setWarnings]      = useState<string[]>([])
@@ -58,31 +59,54 @@ export default function UploadPage() {
   function validateFile(file: File): string | null {
     const name = file.name.toLowerCase()
     if (!name.endsWith('.csv') && !name.endsWith('.txt')) {
-      return 'Please upload a CSV file. To use an Excel file, save it as CSV first via File → Save As → CSV.'
+      return `"${file.name}" is not a CSV file. Save Excel files as CSV first via File → Save As → CSV.`
     }
     if (file.size > 10 * 1024 * 1024) {
-      return 'File is too large (max 10 MB). Please check you are uploading a CSV export, not a full database.'
+      return `"${file.name}" is too large (max 10 MB). Please check you are uploading a CSV export, not a full database.`
     }
     if (file.size < 50) {
-      return 'File appears to be empty.'
+      return `"${file.name}" appears to be empty.`
     }
     return null
   }
 
-  function handleFileSelect(file: File) {
-    const err = validateFile(file)
-    if (err) {
-      setErrorMessage(err)
-      setState('error')
-      return
+  function addFiles(incoming: File[]) {
+    const errors: string[] = []
+    const valid: File[] = []
+
+    for (const file of incoming) {
+      const err = validateFile(file)
+      if (err) { errors.push(err); continue }
+      valid.push(file)
     }
-    setSelectedFile(file)
+
+    if (errors.length) {
+      setErrorMessage(errors.join('\n'))
+      setState('error')
+    } else {
+      setState('idle')
+      setErrorMessage('')
+    }
+
+    if (valid.length) {
+      setSelectedFiles(prev => {
+        // Deduplicate by name
+        const existing = new Set(prev.map(f => f.name))
+        return [...prev, ...valid.filter(f => !existing.has(f.name))]
+      })
+    }
+  }
+
+  function removeFile(index: number) {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
     setState('idle')
     setErrorMessage('')
   }
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.files?.[0]) handleFileSelect(e.target.files[0])
+    if (e.target.files?.length) addFiles(Array.from(e.target.files))
+    // Reset input so the same file can be re-added after removal
+    e.target.value = ''
   }
 
   function handleDragOver(e: DragEvent) {
@@ -96,64 +120,88 @@ export default function UploadPage() {
   function handleDrop(e: DragEvent) {
     e.preventDefault()
     setIsDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handleFileSelect(file)
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length) addFiles(files)
   }
 
   // ── Upload ───────────────────────────────────────────────────
 
-  const runUpload = useCallback(async (file: File) => {
+  const runUpload = useCallback(async (files: File[]) => {
     setState('uploading')
     setStepIndex(0)
+    setCurrentFileIdx(0)
     setErrorMessage('')
     setWarnings([])
 
-    // Animate steps while the real upload happens
-    let currentStep = 0
-    const stepInterval = setInterval(() => {
-      currentStep++
-      if (currentStep < STEPS.length - 1) {
-        setStepIndex(currentStep)
-      }
-    }, 380)
+    let mergedData: ParsedSchoolData | null = null
+    const allWarnings: string[] = []
 
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      setCurrentFileIdx(i)
+      setStepIndex(0)
 
-      const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const json = await res.json() as UploadResult & { error?: string; warnings?: string[] }
+      // Animate steps for this file
+      let currentStep = 0
+      const stepInterval = setInterval(() => {
+        currentStep++
+        if (currentStep < STEPS.length - 1) {
+          setStepIndex(currentStep)
+        }
+      }, 380)
 
-      clearInterval(stepInterval)
-      setStepIndex(STEPS.length - 1)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
 
-      if (!res.ok || !json.success) {
-        setErrorMessage(json.error ?? 'Upload failed. Please try again.')
-        if (json.warnings?.length) setWarnings(json.warnings)
+        const res  = await fetch('/api/upload', { method: 'POST', body: formData })
+        const json = await res.json() as UploadResult & { error?: string; warnings?: string[] }
+
+        clearInterval(stepInterval)
+        setStepIndex(STEPS.length - 1)
+
+        if (!res.ok || !json.success) {
+          setErrorMessage(`Failed on "${file.name}": ${json.error ?? 'Upload failed. Please try again.'}`)
+          if (json.warnings?.length) setWarnings(json.warnings)
+          setState('error')
+          return
+        }
+
+        if (json.warnings?.length) allWarnings.push(...json.warnings)
+
+        // Merge data from multiple files
+        mergedData = mergedData
+          ? mergeSchoolData(mergedData, json.data)
+          : json.data
+
+        await new Promise<void>((res) => setTimeout(res, 300))
+      } catch {
+        clearInterval(stepInterval)
+        setErrorMessage(`Network error while uploading "${file.name}" — check your connection and try again.`)
         setState('error')
         return
       }
-
-      // Store parsed data client-side for the dashboard to read
-      storeSchoolData(json.data)
-
-      if (json.warnings?.length) setWarnings(json.warnings)
-
-      // Brief pause so final step is visible before showing success
-      await new Promise<void>((res) => setTimeout(res, 300))
-
-      setResult(json)
-      setState('success')
-    } catch (err) {
-      clearInterval(stepInterval)
-      setErrorMessage('Network error — check your connection and try again.')
-      setState('error')
     }
+
+    if (!mergedData) return
+
+    storeSchoolData(mergedData)
+    setWarnings(allWarnings)
+
+    const stats = computeStats(mergedData)
+    setResult({
+      success:    true,
+      data:       mergedData,
+      stats,
+      warnings:   allWarnings,
+      importedAt: new Date().toISOString(),
+    })
+    setState('success')
   }, [])
 
   function handleUploadClick() {
-    if (selectedFile) {
-      runUpload(selectedFile)
+    if (selectedFiles.length) {
+      runUpload(selectedFiles)
     } else {
       fileRef.current?.click()
     }
@@ -161,15 +209,18 @@ export default function UploadPage() {
 
   function handleReset() {
     setState('idle')
-    setSelectedFile(null)
+    setSelectedFiles([])
     setResult(null)
     setErrorMessage('')
     setWarnings([])
     setStepIndex(-1)
+    setCurrentFileIdx(0)
     if (fileRef.current) fileRef.current.value = ''
   }
 
   // ── Render ───────────────────────────────────────────────────
+
+  const hasFiles = selectedFiles.length > 0
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -195,7 +246,7 @@ export default function UploadPage() {
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-stone-900 mb-2">Import school data</h1>
             <p className="text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">
-              Upload a CSV export from Arbor MIS or any school data spreadsheet.
+              Upload one or more CSV exports from Arbor MIS. Multiple files are merged automatically.
               Your data stays in your browser and is never stored on our servers.
             </p>
           </div>
@@ -210,11 +261,11 @@ export default function UploadPage() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  onClick={() => !selectedFile && fileRef.current?.click()}
+                  onClick={() => !hasFiles && fileRef.current?.click()}
                   className={cn(
                     'relative flex flex-col items-center justify-center gap-3 rounded-xl',
-                    'border-2 border-dashed px-6 py-10 transition-all duration-200 mb-5',
-                    selectedFile
+                    'border-2 border-dashed px-6 py-10 transition-all duration-200 mb-4',
+                    hasFiles
                       ? 'border-brand-300 bg-brand-50 cursor-default'
                       : isDragging
                       ? 'border-brand-400 bg-brand-50 scale-[1.01]'
@@ -225,15 +276,16 @@ export default function UploadPage() {
                     ref={fileRef}
                     type="file"
                     accept=".csv,.txt"
+                    multiple
                     className="sr-only"
                     onChange={handleInputChange}
                   />
 
                   <div className={cn(
                     'w-11 h-11 rounded-xl flex items-center justify-center',
-                    selectedFile ? 'bg-brand-100' : 'bg-white border border-stone-200',
+                    hasFiles ? 'bg-brand-100' : 'bg-white border border-stone-200',
                   )}>
-                    {selectedFile ? (
+                    {hasFiles ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E3B" strokeWidth="2" strokeLinecap="round">
                         <path d="M5 13l4 4L19 7"/>
                       </svg>
@@ -244,32 +296,67 @@ export default function UploadPage() {
                     )}
                   </div>
 
-                  {selectedFile ? (
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-brand-700">{selectedFile.name}</p>
-                      <p className="text-xs text-stone-400 mt-1">
-                        {(selectedFile.size / 1024).toFixed(0)} KB · ready to upload
-                      </p>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleReset() }}
-                        className="text-xs text-stone-400 hover:text-red-500 mt-2 transition-colors"
-                      >
-                        Remove file
-                      </button>
-                    </div>
+                  {hasFiles ? (
+                    <p className="text-sm font-medium text-brand-700">
+                      {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
+                    </p>
                   ) : (
                     <div className="text-center">
-                      <p className="text-sm font-medium text-stone-700">Drop your CSV file here</p>
-                      <p className="text-xs text-stone-400 mt-1">or click to browse</p>
+                      <p className="text-sm font-medium text-stone-700">Drop CSV files here</p>
+                      <p className="text-xs text-stone-400 mt-1">or click to browse · multiple files supported</p>
                     </div>
                   )}
                 </div>
+
+                {/* File list */}
+                {hasFiles && (
+                  <ul className="mb-4 space-y-2">
+                    {selectedFiles.map((file, i) => (
+                      <li
+                        key={file.name}
+                        className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-stone-50 border border-stone-100"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                          <span className="text-xs font-medium text-stone-700 truncate">{file.name}</span>
+                          <span className="text-xs text-stone-400 flex-shrink-0">{(file.size / 1024).toFixed(0)} KB</span>
+                        </div>
+                        <button
+                          onClick={() => removeFile(i)}
+                          className="text-stone-300 hover:text-red-400 transition-colors flex-shrink-0"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                    {/* Add more files button */}
+                    <li>
+                      <button
+                        onClick={() => fileRef.current?.click()}
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-stone-200 text-xs text-stone-400 hover:border-brand-300 hover:text-brand-600 transition-colors"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add another file
+                      </button>
+                    </li>
+                  </ul>
+                )}
 
                 {/* Error message */}
                 {state === 'error' && errorMessage && (
                   <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
                     <p className="text-sm text-red-700 font-medium mb-0.5">Upload failed</p>
-                    <p className="text-xs text-red-600">{errorMessage}</p>
+                    {errorMessage.split('\n').map((line, i) => (
+                      <p key={i} className="text-xs text-red-600">{line}</p>
+                    ))}
                   </div>
                 )}
 
@@ -296,12 +383,14 @@ export default function UploadPage() {
                   onClick={handleUploadClick}
                   className={cn(
                     'w-full py-3 rounded-xl text-sm font-medium transition-all duration-150',
-                    selectedFile
+                    hasFiles
                       ? 'bg-brand-500 text-white hover:bg-brand-600'
                       : 'bg-stone-100 text-stone-500 hover:bg-stone-200',
                   )}
                 >
-                  {selectedFile ? 'Upload and process →' : 'Choose a file to upload'}
+                  {hasFiles
+                    ? `Upload and process ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''} →`
+                    : 'Choose files to upload'}
                 </button>
 
                 <p className="text-xs text-stone-400 text-center mt-3">
@@ -314,10 +403,13 @@ export default function UploadPage() {
             {/* ── Uploading ── */}
             {state === 'uploading' && (
               <div className="text-center py-4">
-                <div
-                  className="w-9 h-9 rounded-full border-[3px] border-stone-200 border-t-brand-500 animate-spin mx-auto mb-5"
-                />
+                <div className="w-9 h-9 rounded-full border-[3px] border-stone-200 border-t-brand-500 animate-spin mx-auto mb-5" />
                 <p className="text-[15px] font-medium text-stone-900 mb-1">Processing your data</p>
+                {selectedFiles.length > 1 && (
+                  <p className="text-xs text-brand-600 font-medium mb-0.5">
+                    File {currentFileIdx + 1} of {selectedFiles.length}: {selectedFiles[currentFileIdx]?.name}
+                  </p>
+                )}
                 <p className="text-xs text-stone-400 mb-6">Analysing pupil records…</p>
 
                 <div className="text-left space-y-2.5">
@@ -359,13 +451,14 @@ export default function UploadPage() {
 
                 <h2 className="text-lg font-semibold text-stone-900 text-center mb-1">Upload complete</h2>
                 <p className="text-sm text-stone-500 text-center mb-6">
-                  {result.stats.pupils} pupils across {result.stats.yearGroups} year groups processed successfully.
+                  {result.stats.pupils} pupils across {result.stats.yearGroups} year groups processed successfully
+                  {selectedFiles.length > 1 ? ` from ${selectedFiles.length} files` : ''}.
                 </p>
 
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
-                  <StatBox value={result.stats.pupils} label="Pupils imported" />
-                  <StatBox value={result.stats.yearGroups} label="Year groups" />
+                  <StatBox value={result.stats.pupils}      label="Pupils imported" />
+                  <StatBox value={result.stats.yearGroups}  label="Year groups" />
                   <StatBox
                     value={`${result.stats.avgAttendance.toFixed(1)}%`}
                     label="Average attendance"
@@ -398,7 +491,7 @@ export default function UploadPage() {
                   onClick={handleReset}
                   className="w-full py-2 rounded-xl text-sm text-stone-400 hover:text-stone-600 transition-colors"
                 >
-                  Upload another file
+                  Upload more files
                 </button>
               </div>
             )}
@@ -408,6 +501,42 @@ export default function UploadPage() {
       </main>
     </div>
   )
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+
+/**
+ * Merge two ParsedSchoolData objects by concatenating their pupil arrays.
+ * Duplicate pupils (same id) from the second file are skipped.
+ */
+function mergeSchoolData(a: ParsedSchoolData, b: ParsedSchoolData): ParsedSchoolData {
+  const existingIds = new Set(a.pupils.map((p: any) => p.id ?? p.upn ?? p.name))
+  const newPupils   = b.pupils.filter((p: any) => !existingIds.has(p.id ?? p.upn ?? p.name))
+  return {
+    ...a,
+    pupils: [...a.pupils, ...newPupils],
+  }
+}
+
+/**
+ * Re-compute summary stats from merged ParsedSchoolData so the success screen
+ * reflects the combined dataset rather than only the last file's API response.
+ */
+function computeStats(data: ParsedSchoolData): {
+  pupils: number; yearGroups: number; persistentAbsence: number; avgAttendance: number; subjects: number
+} {
+  const pupils = data.pupils ?? []
+  const yearGroups = new Set(pupils.map((p: any) => p.yearGroup ?? p.year_group ?? '')).size
+  const attendances = pupils
+    .map((p: any) => parseFloat(p.attendancePercent ?? p.attendance ?? '0'))
+    .filter((n: number) => !isNaN(n))
+  const avgAttendance = attendances.length
+    ? attendances.reduce((a: number, b: number) => a + b, 0) / attendances.length
+    : 0
+  const persistentAbsence = pupils.filter(
+    (p: any) => parseFloat(p.attendancePercent ?? p.attendance ?? '100') < 90
+  ).length
+  return { pupils: pupils.length, yearGroups, persistentAbsence, avgAttendance, subjects: 0 }
 }
 
 // ── Sub-components ────────────────────────────────────────────
@@ -420,7 +549,7 @@ function StatBox({
   highlight?: 'red' | 'amber' | 'green'
 }) {
   const valueColor =
-    highlight === 'red'   ? 'text-red-600' :
+    highlight === 'red'   ? 'text-red-600'   :
     highlight === 'amber' ? 'text-amber-600' :
     highlight === 'green' ? 'text-green-700' :
     'text-stone-900'

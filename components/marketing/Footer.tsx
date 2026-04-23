@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Route } from 'next'
 
 export function Footer() {
   return (
@@ -19,7 +20,7 @@ export function Footer() {
           <div>
             <h4 style={{ fontFamily: 'var(--f-ui)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink)', margin: '0 0 14px' }}>Product</h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <li><Link href="/chalkai">ChalkAI assistant</Link></li>
+              <li><Link href={"/chalkai" as Route}>ChalkAI assistant</Link></li>
               <li><Link href="/arbor/dashboard">Arbor AI</Link></li>
               <li><a href="#pricing">Pricing</a></li>
               <li><Link href="/sign-up">Sign up</Link></li>

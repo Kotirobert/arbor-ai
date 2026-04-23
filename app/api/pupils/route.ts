@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     const pupils = await getPupils({
       role,
-      yearGroup: role === 'hoy' ? 9 : undefined,
+      yearGroup: role === 'hoy' ? '9' : undefined,
       className: role === 'teacher' ? '9A' : undefined,
     })
 

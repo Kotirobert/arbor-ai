@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSession } from '@/lib/auth/mockSession'
+import type { Route } from 'next'
 import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
@@ -56,7 +57,7 @@ export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps
           </svg>
           Arbor AI
         </button>
-        <Link href="/chalkai" className="tool-switch__btn">
+        <Link href={"/chalkai" as Route} className="tool-switch__btn">
           <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
           </svg>
