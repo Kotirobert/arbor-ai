@@ -5,7 +5,6 @@ import {
   BEHAVIOUR_INSIGHTS,
   YEAR_GROUP_ATTENDANCE_BARS,
   MOCK_SUBJECT_ATTAINMENT,
-  MOCK_DASHBOARD_STATS,
 } from '@/lib/data/mock'
 import { AI_ACTION_CHIPS, SUGGESTED_PROMPTS } from '@/lib/ai'
 import { ArborSidebar } from '@/components/arbor/ArborSidebar'
@@ -39,18 +38,10 @@ export default async function ArborDashboardPage({ searchParams }: DashboardPage
     getPriorityPupils(scope),
   ])
 
-  const lastImport = new Date(MOCK_DASHBOARD_STATS.lastImportAt).toLocaleString('en-GB', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  })
-
   return (
     <div className="app">
       <Suspense fallback={null}>
-        <ArborSidebar
-          role={role}
-          schoolName="Greenfield Primary School"
-          lastUpload={lastImport}
-        />
+        <ArborSidebar role={role} />
       </Suspense>
       <Suspense fallback={<SkeletonDashboard />}>
         <DashboardClient

@@ -23,7 +23,7 @@ export default async function ArborPupilPage({ params }: PupilPageProps) {
 
   return (
     <div className="app">
-      <Suspense fallback={null}><ArborSidebar role="slt" schoolName="Greenfield Primary School" lastUpload="—" /></Suspense>
+      <Suspense fallback={null}><ArborSidebar role="slt" /></Suspense>
       <main className="app__main" style={{ overflowY: 'auto', background: 'var(--paper-2)' }}>
         {/* Breadcrumb topbar */}
         <div style={{

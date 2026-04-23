@@ -8,9 +8,7 @@ import type { Route } from 'next'
 import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
-  role:       UserRole
-  schoolName?: string
-  lastUpload?: string
+  role: UserRole
 }
 
 export function ArborSidebar({ role }: ArborSidebarProps) {
