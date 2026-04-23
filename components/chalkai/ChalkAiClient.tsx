@@ -1,23 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ModeTabs, type ChalkAiMode } from './ModeTabs'
 import { AssistantChat } from './AssistantChat'
-import { GeneratorPanel } from './GeneratorPanel'
 import { getProfile, getSession } from '@/lib/auth/mockSession'
 import type { ChalkAiSession, TeacherProfile } from '@/types'
 
-function modeFromSearch(sp: URLSearchParams | null): ChalkAiMode {
-  return sp?.get('mode') === 'generator' ? 'generator' : 'assistant'
-}
-
 export function ChalkAiClient() {
-  const router = useRouter()
-  const search = useSearchParams()
-
-  const [mode, setMode]       = useState<ChalkAiMode>(() => modeFromSearch(search))
   const [session, setSession] = useState<ChalkAiSession | null>(null)
   const [profile, setProfileState] = useState<TeacherProfile | null>(null)
 
@@ -25,17 +14,6 @@ export function ChalkAiClient() {
     setSession(getSession())
     setProfileState(getProfile())
   }, [])
-
-  useEffect(() => {
-    const current = search?.get('mode')
-    if (current !== mode) {
-      const params = new URLSearchParams(search?.toString() ?? '')
-      params.set('mode', mode)
-      router.replace(`/chalkai?${params.toString()}` as any, { scroll: false })
-    }
-  }, [mode, router, search])
-
-  const handleMode = useCallback((m: ChalkAiMode) => setMode(m), [])
 
   const initials = session
     ? `${session.firstName?.[0] ?? ''}${session.lastName?.[0] ?? ''}`.toUpperCase() || 'TC'
@@ -58,7 +36,7 @@ export function ChalkAiClient() {
             <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
               <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
             </svg>
-            ChalkAI
+            Assistant
           </button>
           <Link href="/arbor/dashboard" className="tool-switch__btn">
             <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
@@ -68,34 +46,24 @@ export function ChalkAiClient() {
           </Link>
         </div>
 
-        {/* Workspace nav */}
+        {/* Nav */}
         <div className="side-group">
-          <div className="side-group__title">Workspace</div>
           <button
-            onClick={() => handleMode('assistant')}
-            className={`side-link${mode === 'assistant' ? ' side-link--active' : ''}`}
+            className="side-link side-link--active"
+            style={{ fontWeight: 600 }}
           >
             <svg className="ico side-link__icon" viewBox="0 0 24 24">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              <path d="M12 5v14M5 12h14"/>
             </svg>
-            Assistant
+            New chat
           </button>
-          <button
-            onClick={() => handleMode('generator')}
-            className={`side-link${mode === 'generator' ? ' side-link--active' : ''}`}
-          >
-            <svg className="ico side-link__icon" viewBox="0 0 24 24">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>
-            </svg>
-            Generator
-          </button>
-          <div className="side-link">
+          <button className="side-link">
             <svg className="ico side-link__icon" viewBox="0 0 24 24">
               <path d="M3 7h18M3 12h18M3 17h18"/>
             </svg>
             Library
             <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-3)' }}>47</span>
-          </div>
+          </button>
         </div>
 
         {/* User meta */}
@@ -114,39 +82,9 @@ export function ChalkAiClient() {
 
       {/* Main content */}
       <main className="app__main">
-        {/* Topbar */}
-        <div style={{
-          height: 64, borderBottom: '1px solid var(--line)', display: 'flex',
-          alignItems: 'center', justifyContent: 'space-between', padding: '0 28px',
-          background: 'var(--paper)', flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ fontFamily: 'var(--f-body)', fontSize: 13, color: 'var(--ink-2)', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span>ChalkAI</span>
-              <span style={{ color: 'var(--ink-3)' }}>/</span>
-              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
-                {mode === 'assistant' ? 'Assistant' : 'Generator'}
-              </span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {profile && (
-              <span className="tag tag--green">
-                <span className="tag__dot" />
-                Profile active
-              </span>
-            )}
-            <ModeTabs value={mode} onChange={handleMode} />
-          </div>
-        </div>
-
         {/* Panel */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {mode === 'assistant' ? (
-            <AssistantChat profile={profile} firstName={session?.firstName} />
-          ) : (
-            <GeneratorPanel profile={profile} />
-          )}
+          <AssistantChat profile={profile} firstName={session?.firstName} />
         </div>
       </main>
     </div>
