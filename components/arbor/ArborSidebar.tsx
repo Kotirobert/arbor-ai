@@ -8,10 +8,12 @@ import type { Route } from 'next'
 import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
-  role: UserRole
+  role:         UserRole
+  editMode:     boolean
+  onToggleEdit: () => void
 }
 
-export function ArborSidebar({ role }: ArborSidebarProps) {
+export function ArborSidebar({ role, editMode, onToggleEdit }: ArborSidebarProps) {
   const pathname     = usePathname()
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -77,6 +79,15 @@ export function ArborSidebar({ role }: ArborSidebarProps) {
           </svg>
           Upload data
         </Link>
+        <button
+          onClick={onToggleEdit}
+          className={`side-link${editMode ? ' side-link--active' : ''}`}
+        >
+          <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+          </svg>
+          {editMode ? 'Exit customise' : 'Customise'}
+        </button>
       </div>
 
       {/* View as */}
