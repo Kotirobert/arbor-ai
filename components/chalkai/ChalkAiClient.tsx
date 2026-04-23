@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AssistantChat } from './AssistantChat'
+import { type ChatBubble } from './ChatMessage'
 import { getProfile, getSession } from '@/lib/auth/mockSession'
 import type { ChalkAiSession, TeacherProfile } from '@/types'
 
 export function ChalkAiClient() {
   const [session, setSession] = useState<ChalkAiSession | null>(null)
   const [profile, setProfileState] = useState<TeacherProfile | null>(null)
+  const [messages, setMessages] = useState<ChatBubble[]>([])
+  const [view, setView]         = useState<'chat' | 'library'>('chat')
 
   useEffect(() => {
     setSession(getSession())
@@ -49,7 +52,8 @@ export function ChalkAiClient() {
         {/* Nav */}
         <div className="side-group">
           <button
-            className="side-link side-link--active"
+            onClick={() => { setMessages([]); setView('chat') }}
+            className={`side-link${view === 'chat' ? ' side-link--active' : ''}`}
             style={{ fontWeight: 600 }}
           >
             <svg className="ico side-link__icon" viewBox="0 0 24 24">
@@ -57,7 +61,10 @@ export function ChalkAiClient() {
             </svg>
             New chat
           </button>
-          <button className="side-link">
+          <button
+            onClick={() => setView('library')}
+            className={`side-link${view === 'library' ? ' side-link--active' : ''}`}
+          >
             <svg className="ico side-link__icon" viewBox="0 0 24 24">
               <path d="M3 7h18M3 12h18M3 17h18"/>
             </svg>
@@ -84,7 +91,38 @@ export function ChalkAiClient() {
       <main className="app__main">
         {/* Panel */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <AssistantChat profile={profile} firstName={session?.firstName} />
+          {view === 'library' ? (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '32px 28px' }}>
+              <div className="eyebrow" style={{ marginBottom: 16 }}>Chat history</div>
+              {messages.length === 0 ? (
+                <p style={{ color: 'var(--ink-2)', fontSize: 14 }}>
+                  No chats yet. Start a new chat to get going.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {messages
+                    .filter((m) => m.role === 'user')
+                    .map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setView('chat')}
+                        className="side-link"
+                        style={{ textAlign: 'left', fontSize: 13 }}
+                      >
+                        {m.body.slice(0, 60)}{m.body.length > 60 ? '\u2026' : ''}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <AssistantChat
+              profile={profile}
+              firstName={session?.firstName}
+              messages={messages}
+              onMessages={setMessages}
+            />
+          )}
         </div>
       </main>
     </div>

@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils'
 interface Props {
   profile:    TeacherProfile | null
   firstName?: string
+  messages:   ChatBubble[]
+  onMessages: (msgs: ChatBubble[]) => void
 }
 
 const STARTERS: { label: string; prompt: string }[] = [
@@ -22,14 +24,16 @@ const STARTERS: { label: string; prompt: string }[] = [
   { label: '/hinge on photosynthesis',   prompt: '/hinge on photosynthesis' },
 ]
 
-export function AssistantChat({ profile, firstName }: Props) {
-  const [messages, setMessages] = useState<ChatBubble[]>([])
+export function AssistantChat({ profile, firstName, messages, onMessages }: Props) {
   const [input, setInput]       = useState('')
   const [busy, setBusy]         = useState(false)
   const [hintIdx, setHintIdx]   = useState(0)
 
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-  const abortRef  = useRef<(() => void) | null>(null)
+  const scrollRef    = useRef<HTMLDivElement | null>(null)
+  const abortRef     = useRef<(() => void) | null>(null)
+  const messagesRef  = useRef<ChatBubble[]>(messages)
+
+  useEffect(() => { messagesRef.current = messages }, [messages])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -47,8 +51,8 @@ export function AssistantChat({ profile, firstName }: Props) {
     const asstId = `a-${Date.now() + 1}`
     const reply  = mockReply(text, profile)
 
-    setMessages((m) => [
-      ...m,
+    onMessages([
+      ...messagesRef.current,
       userMsg,
       { id: asstId, role: 'assistant', title: reply.title, body: '', streaming: true, options: reply.options },
     ])
@@ -58,16 +62,16 @@ export function AssistantChat({ profile, firstName }: Props) {
     abortRef.current = streamText(
       reply.body,
       (soFar) => {
-        setMessages((m) => m.map((msg) => (msg.id === asstId ? { ...msg, body: soFar } : msg)))
+        onMessages(messagesRef.current.map((msg) => (msg.id === asstId ? { ...msg, body: soFar } : msg)))
       },
       () => {
-        setMessages((m) => m.map((msg) => (msg.id === asstId ? { ...msg, streaming: false } : msg)))
+        onMessages(messagesRef.current.map((msg) => (msg.id === asstId ? { ...msg, streaming: false } : msg)))
         setBusy(false)
         abortRef.current = null
       },
       9,
     )
-  }, [busy, profile])
+  }, [busy, profile, onMessages])
 
   const showHint = input.startsWith('/') && !input.includes(' ')
   const filteredHintCount = showHint
