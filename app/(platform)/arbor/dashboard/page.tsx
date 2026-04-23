@@ -45,11 +45,13 @@ export default async function ArborDashboardPage({ searchParams }: DashboardPage
 
   return (
     <div className="app">
-      <ArborSidebar
-        role={role}
-        schoolName="Greenfield Primary School"
-        lastUpload={lastImport}
-      />
+      <Suspense fallback={null}>
+        <ArborSidebar
+          role={role}
+          schoolName="Greenfield Primary School"
+          lastUpload={lastImport}
+        />
+      </Suspense>
       <Suspense fallback={<SkeletonDashboard />}>
         <DashboardClient
           role={role}

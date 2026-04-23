@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSession } from '@/lib/auth/mockSession'
 import type { UserRole } from '@/types'
 
@@ -13,8 +13,9 @@ interface ArborSidebarProps {
 }
 
 export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps) {
-  const pathname = usePathname()
-  const router   = useRouter()
+  const pathname     = usePathname()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
   const [session, setSession] = useState<ReturnType<typeof getSession>>(null)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps
     : 'AR'
 
   function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const p = new URLSearchParams(window.location.search)
+    const p = new URLSearchParams(searchParams.toString())
     p.set('role', e.target.value)
     router.push(`/arbor/dashboard?${p.toString()}`)
   }

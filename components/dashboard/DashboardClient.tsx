@@ -2,7 +2,6 @@
 
 import { useTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useDashboardConfig } from '@/hooks/useDashboardConfig'
 import { CustomiseSidebar } from '@/components/dashboard/CustomiseSidebar'
@@ -178,8 +177,8 @@ export function DashboardClient({
   return (
     <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
     <div style={{ padding: '32px 32px 48px' }}>
-    <div className={cn(editMode ? 'flex gap-6 items-start' : 'block')}>
-    <div className="flex-1 min-w-0 space-y-5">
+    <div style={{ display: editMode ? 'flex' : 'block', gap: editMode ? 24 : 0, alignItems: 'flex-start' }}>
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
@@ -253,7 +252,7 @@ export function DashboardClient({
 
         {/* Priority + AI */}
         {(isVisible('priorityPupils') || isVisible('aiActions')) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
             {isVisible('priorityPupils') && <PriorityPanel rows={liveRows} />}
             {isVisible('aiActions') && <AiActionsPanel chips={aiChips} prompts={suggestedPrompts} />}
           </div>
@@ -266,7 +265,7 @@ export function DashboardClient({
 
         {/* Attendance + insights + audit */}
         {(isVisible('attendanceBars') || isVisible('attainmentInsights') || isVisible('auditLog')) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
             {isVisible('attendanceBars') && (
               <InsightsPanel
                 title="Attendance patterns"
@@ -276,7 +275,7 @@ export function DashboardClient({
               />
             )}
             {(isVisible('attainmentInsights') || isVisible('auditLog')) && (
-              <div className="space-y-5">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {isVisible('attainmentInsights') && (
                   <InsightsPanel title="Attainment insights" subtitle="School-wide patterns" insights={behInsights} />
                 )}

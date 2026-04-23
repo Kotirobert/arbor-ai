@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPupilFullRecord, getMockDataSource } from '@/lib/data/queries'
@@ -22,7 +23,7 @@ export default async function ArborPupilPage({ params }: PupilPageProps) {
 
   return (
     <div className="app">
-      <ArborSidebar role="slt" schoolName="Greenfield Primary School" lastUpload="—" />
+      <Suspense fallback={null}><ArborSidebar role="slt" schoolName="Greenfield Primary School" lastUpload="—" /></Suspense>
       <main className="app__main" style={{ overflowY: 'auto', background: 'var(--paper-2)' }}>
         {/* Breadcrumb topbar */}
         <div style={{

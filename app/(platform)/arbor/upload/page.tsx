@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, type DragEvent, type ChangeEvent } from 'react'
+import { useState, useRef, useCallback, Suspense, type DragEvent, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { storeSchoolData } from '@/lib/schoolStore'
 import { ArborSidebar } from '@/components/arbor/ArborSidebar'
@@ -215,7 +215,7 @@ export default function ArborUploadPage() {
 
   return (
     <div className="app">
-      <ArborSidebar role="slt" schoolName="Greenfield Primary School" lastUpload="—" />
+      <Suspense fallback={null}><ArborSidebar role="slt" schoolName="Greenfield Primary School" lastUpload="—" /></Suspense>
       <main className="app__main" style={{ overflowY: 'auto', background: 'var(--paper-2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', minHeight: '100%' }}>
           <div style={{ width: '100%', maxWidth: 540 }}>
