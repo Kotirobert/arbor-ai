@@ -183,10 +183,10 @@ export function DashboardClient({
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
           <div>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Arbor AI · School overview</div>
-            <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
-              A calm view of your <i style={{ color: 'var(--chalk-green)' }}>school, today.</i>
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--ink)', display: 'inline-block' }} />
+              <span style={{ fontFamily: 'var(--f-display)', fontSize: 28, letterSpacing: '-0.01em' }}>ChalkAI</span>
+            </div>
             <p style={{ color: 'var(--ink-2)', fontSize: 14, marginTop: 10 }}>
               {scopeLabel}
               {lastImport && <span style={{ color: 'var(--ink-3)' }}> · imported {lastImport}</span>}

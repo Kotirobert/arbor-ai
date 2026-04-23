@@ -9,11 +9,11 @@ import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
   role:       UserRole
-  schoolName: string
-  lastUpload: string
+  schoolName?: string
+  lastUpload?: string
 }
 
-export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps) {
+export function ArborSidebar({ role }: ArborSidebarProps) {
   const pathname     = usePathname()
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -22,10 +22,6 @@ export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps
   useEffect(() => {
     setSession(getSession())
   }, [])
-
-  const initials = session
-    ? `${session.firstName?.[0] ?? ''}${session.lastName?.[0] ?? ''}`.toUpperCase() || 'AR'
-    : 'AR'
 
   function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const p = new URLSearchParams(searchParams.toString())
@@ -43,9 +39,6 @@ export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps
         <div className="nav__brand" style={{ fontSize: 22 }}>
           <span className="nav__brand-mark" />
           <span>Arbor AI</span>
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4, paddingLeft: 30, lineHeight: 1.4 }}>
-          {schoolName} · {lastUpload}
         </div>
       </div>
 
@@ -112,7 +105,6 @@ export function ArborSidebar({ role, schoolName, lastUpload }: ArborSidebarProps
 
       {/* User meta */}
       <div className="side-meta">
-        <div className="avatar">{initials}</div>
         <div>
           <div style={{ fontWeight: 500 }}>
             {session ? `${session.firstName} ${session.lastName}`.trim() : 'School lead'}
