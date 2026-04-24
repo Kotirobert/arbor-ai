@@ -23,7 +23,6 @@ export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
   const [editMode, setEditMode] = useState(false)
   const handleToggleEdit = useCallback(() => setEditMode((e) => !e), [])
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const handleToggleSidebar = useCallback(() => setSidebarOpen((o) => !o), [])
 
   return (
     <div className="app">
