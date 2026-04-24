@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export function Hero() {
   return (
-    <section className="hero" style={{ padding: '72px 0 96px' }}>
+    <section className="hero" style={{ padding: 'clamp(48px, 8vw, 96px) 0 clamp(64px, 10vw, 120px)' }}>
       <div className="container">
         <span className="hero__badge" style={{
           display: 'inline-flex', alignItems: 'center', gap: 10,
@@ -44,9 +44,9 @@ export function Hero() {
         }}>
           <span className="eyebrow">Trusted by staff at</span>
           <div style={{
-            display: 'flex', gap: 40,
-            fontFamily: 'var(--f-display)', fontSize: 20,
-            color: 'var(--ink-2)', fontStyle: 'italic', flexWrap: 'wrap'
+            display: 'flex', gap: 'clamp(16px, 4vw, 40px)', flexWrap: 'wrap',
+            fontFamily: 'var(--f-display)', fontSize: 'clamp(15px, 2vw, 20px)',
+            color: 'var(--ink-2)', fontStyle: 'italic',
           }}>
             <span>Hillcrest Primary</span>
             <span>St. Edmund&rsquo;s</span>
