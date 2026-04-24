@@ -18,7 +18,7 @@ export function HowItWorks() {
   ]
 
   return (
-    <section id="how" style={{ padding: '120px 0', borderTop: '1px solid var(--line)', marginTop: 80 }}>
+    <section id="how" style={{ padding: '80px 0 120px', borderTop: '1px solid var(--line)', marginTop: 80 }}>
       <div className="container">
         <div className="eyebrow" style={{ marginBottom: 16 }}>How it fits together</div>
         <h2 className="h1" style={{ maxWidth: '18ch' }}>
@@ -26,16 +26,16 @@ export function HowItWorks() {
           <i style={{ color: 'var(--chalk-green)' }}>the lesson for them.</i>
         </h2>
 
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
-          gap: 0, marginTop: 56, borderTop: '1px solid var(--line)'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 mt-14 border-t border-[var(--line)]">
           {cells.map((cell, i) => (
-            <div key={cell.num} style={{
-              padding: '36px 28px 36px 0',
-              borderRight: i < 2 ? '1px solid var(--line)' : undefined,
-              paddingLeft: i > 0 ? 28 : 0,
-            }}>
+            <div
+              key={cell.num}
+              className={[
+                'py-9 px-0',
+                i > 0 ? 'md:pl-7' : '',
+                i < 2 ? 'md:pr-7 md:border-r border-[var(--line)] border-b md:border-b-0' : '',
+              ].join(' ')}
+            >
               <div style={{ fontFamily: 'var(--f-display)', fontStyle: 'italic', fontSize: 28, color: 'var(--ink-3)', marginBottom: 12 }}>
                 {cell.num}
               </div>
@@ -52,4 +52,3 @@ export function HowItWorks() {
     </section>
   )
 }
-
