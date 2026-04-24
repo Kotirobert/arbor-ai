@@ -12,6 +12,7 @@ export function ChalkAiClient() {
   const [profile, setProfileState] = useState<TeacherProfile | null>(null)
   const [messages, setMessages] = useState<ChatBubble[]>([])
   const [view, setView]         = useState<'chat' | 'library'>('chat')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
     setSession(getSession())
@@ -27,10 +28,29 @@ export function ChalkAiClient() {
   return (
     <div className="app">
       {/* Sidebar */}
-      <aside className="app__sidebar">
+      <aside
+        className="app__sidebar"
+        style={{
+          width: sidebarOpen ? undefined : 0,
+          minWidth: sidebarOpen ? undefined : 0,
+          overflow: sidebarOpen ? 'visible' : 'hidden',
+          padding: sidebarOpen ? undefined : 0,
+          transition: 'width 220ms cubic-bezier(.4,0,.2,1), min-width 220ms cubic-bezier(.4,0,.2,1)',
+        }}
+      >
         <div className="nav__brand" style={{ fontSize: 22 }}>
           <span className="nav__brand-mark" />
           <span>ChalkAI</span>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="btn btn--ghost btn--sm"
+            style={{ marginLeft: 'auto', padding: '4px 6px', lineHeight: 1 }}
+            aria-label="Collapse sidebar"
+          >
+            <svg className="ico" viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
+              <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+            </svg>
+          </button>
         </div>
 
         {/* Tool switcher */}
@@ -99,6 +119,23 @@ export function ChalkAiClient() {
           </div>
         </div>
       </aside>
+
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="btn btn--ghost btn--sm"
+          style={{
+            position: 'fixed', top: 16, left: 16, zIndex: 50,
+            background: 'var(--paper)', border: '1px solid var(--line)',
+            padding: '6px 8px', borderRadius: 8,
+          }}
+          aria-label="Open sidebar"
+        >
+          <svg className="ico" viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+      )}
 
       {/* Main content */}
       <main className="app__main">

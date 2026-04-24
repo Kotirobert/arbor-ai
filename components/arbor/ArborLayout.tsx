@@ -22,6 +22,8 @@ interface ArborLayoutProps {
 export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
   const [editMode, setEditMode] = useState(false)
   const handleToggleEdit = useCallback(() => setEditMode((e) => !e), [])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((o) => !o), [])
 
   return (
     <div className="app">
@@ -29,6 +31,8 @@ export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
         role={role}
         editMode={editMode}
         onToggleEdit={handleToggleEdit}
+        sidebarOpen={sidebarOpen}
+        onCollapse={() => setSidebarOpen(false)}
       />
       <DashboardClient
         role={role}
@@ -36,6 +40,22 @@ export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
         onToggleEdit={handleToggleEdit}
         {...rest}
       />
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="btn btn--ghost btn--sm"
+          style={{
+            position: 'fixed', top: 16, left: 16, zIndex: 50,
+            background: 'var(--paper)', border: '1px solid var(--line)',
+            padding: '6px 8px', borderRadius: 8,
+          }}
+          aria-label="Open sidebar"
+        >
+          <svg className="ico" viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+      )}
     </div>
   )
 }

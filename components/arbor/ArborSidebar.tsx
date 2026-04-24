@@ -11,9 +11,11 @@ interface ArborSidebarProps {
   role:         UserRole
   editMode:     boolean
   onToggleEdit: () => void
+  sidebarOpen:  boolean
+  onCollapse:   () => void
 }
 
-export function ArborSidebar({ role, editMode, onToggleEdit }: ArborSidebarProps) {
+export function ArborSidebar({ role, editMode, onToggleEdit, sidebarOpen, onCollapse }: ArborSidebarProps) {
   const pathname     = usePathname()
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -33,12 +35,31 @@ export function ArborSidebar({ role, editMode, onToggleEdit }: ArborSidebarProps
   const isUpload    = pathname === '/arbor/upload'
 
   return (
-    <aside className="app__sidebar">
+    <aside
+      className="app__sidebar"
+      style={{
+        width: sidebarOpen ? undefined : 0,
+        minWidth: sidebarOpen ? undefined : 0,
+        overflow: sidebarOpen ? 'visible' : 'hidden',
+        padding: sidebarOpen ? undefined : 0,
+        transition: 'width 220ms cubic-bezier(.4,0,.2,1), min-width 220ms cubic-bezier(.4,0,.2,1)',
+      }}
+    >
       {/* Brand + school info */}
       <div>
         <div className="nav__brand" style={{ fontSize: 22 }}>
           <span className="nav__brand-mark" />
           <span>Arbor AI</span>
+          <button
+            onClick={onCollapse}
+            className="btn btn--ghost btn--sm"
+            style={{ marginLeft: 'auto', padding: '4px 6px', lineHeight: 1 }}
+            aria-label="Collapse sidebar"
+          >
+            <svg className="ico" viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
+              <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+            </svg>
+          </button>
         </div>
       </div>
 

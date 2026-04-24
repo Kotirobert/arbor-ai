@@ -23,7 +23,7 @@ export default async function ArborPupilPage({ params }: PupilPageProps) {
 
   return (
     <div className="app">
-      <Suspense fallback={null}><ArborSidebar role="slt" editMode={false} onToggleEdit={() => {}} /></Suspense>
+      <Suspense fallback={null}><ArborSidebar role="slt" editMode={false} onToggleEdit={() => {}} sidebarOpen={true} onCollapse={() => {}} /></Suspense>
       <main className="app__main" style={{ overflowY: 'auto', background: 'var(--paper-2)' }}>
         {/* Breadcrumb topbar */}
         <div style={{
