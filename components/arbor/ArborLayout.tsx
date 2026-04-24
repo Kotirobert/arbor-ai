@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { ArborSidebar } from './ArborSidebar'
 import { DashboardClient } from '@/components/dashboard/DashboardClient'
 import type { UserRole, DashboardStats } from '@/types'
@@ -21,18 +21,19 @@ interface ArborLayoutProps {
 
 export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
   const [editMode, setEditMode] = useState(false)
+  const handleToggleEdit = useCallback(() => setEditMode((e) => !e), [])
 
   return (
     <div className="app">
       <ArborSidebar
         role={role}
         editMode={editMode}
-        onToggleEdit={() => setEditMode((e) => !e)}
+        onToggleEdit={handleToggleEdit}
       />
       <DashboardClient
         role={role}
         editMode={editMode}
-        onToggleEdit={() => setEditMode((e) => !e)}
+        onToggleEdit={handleToggleEdit}
         {...rest}
       />
     </div>

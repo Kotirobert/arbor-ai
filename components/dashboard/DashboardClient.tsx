@@ -53,8 +53,8 @@ interface DashboardClientProps {
   subjectAttainment: Record<string, { pre: number; wt: number; exp: number; gd: number }>
   aiChips:           string[]
   suggestedPrompts:  string[]
-  editMode?:         boolean
-  onToggleEdit?:     () => void
+  editMode:          boolean
+  onToggleEdit:      () => void
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -159,21 +159,14 @@ export function DashboardClient({
   // ── Config / edit mode ────────────────────────────────────
   const {
     draft, isDirty,
-    editMode: hookEditMode,
-    openEdit, closeEdit,
     togglePanel, save, reset, isVisible,
   } = useDashboardConfig(role)
-
-  const resolvedEditMode   = editMode   !== undefined ? editMode   : hookEditMode
-  const resolvedToggleEdit = onToggleEdit !== undefined
-    ? onToggleEdit
-    : () => { if (hookEditMode) closeEdit(); else openEdit() }
 
   function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
     startTransition(() => router.push(`/arbor/dashboard?role=${role}&year=${e.target.value}`))
   }
-  function handleSave() { save(); if (resolvedEditMode) resolvedToggleEdit(); toast('Dashboard layout saved', 'success') }
-  function handleReset() { reset(); if (resolvedEditMode) resolvedToggleEdit(); toast('Layout reset to default') }
+  function handleSave() { save(); if (editMode) onToggleEdit(); toast('Dashboard layout saved', 'success') }
+  function handleReset() { reset(); if (editMode) onToggleEdit(); toast('Layout reset to default') }
 
   const scopeLabel =
     role === 'slt'     ? 'Viewing all year groups — Reception to Year 6' :
@@ -188,7 +181,7 @@ export function DashboardClient({
   return (
     <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
     <div style={{ padding: '32px 32px 48px' }}>
-    <div style={{ display: resolvedEditMode ? 'flex' : 'block', gap: resolvedEditMode ? 24 : 0, alignItems: 'flex-start' }}>
+    <div style={{ display: editMode ? 'flex' : 'block', gap: editMode ? 24 : 0, alignItems: 'flex-start' }}>
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Top bar */}
@@ -289,7 +282,7 @@ export function DashboardClient({
       </div>
 
       {/* Customise sidebar (inline, alongside content) */}
-      {resolvedEditMode && (
+      {editMode && (
         <CustomiseSidebar
           role={role}
           draft={draft}
@@ -297,7 +290,7 @@ export function DashboardClient({
           onToggle={togglePanel}
           onSave={handleSave}
           onReset={handleReset}
-          onClose={resolvedToggleEdit}
+          onClose={onToggleEdit}
         />
       )}
     </div>

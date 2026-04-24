@@ -10,7 +10,7 @@ import {
 import { AI_ACTION_CHIPS, SUGGESTED_PROMPTS } from '@/lib/ai'
 import { Navbar } from '@/components/ui/Navbar'
 import { SkeletonDashboard } from '@/components/ui/Skeleton'
-import { DashboardClient } from '@/components/dashboard/DashboardClient'
+import { DashboardClientWrapper } from '@/components/dashboard/DashboardClientWrapper'
 import type { UserRole } from '@/types'
 
 interface DashboardPageProps {
@@ -47,7 +47,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     <div className="min-h-screen bg-stone-50">
       <Navbar role={role} schoolName="Greenfield Primary School" lastUpload={lastImport} />
       <Suspense fallback={<SkeletonDashboard />}>
-        <DashboardClient
+        <DashboardClientWrapper
           role={role}
           yearGroup={yearGroup ?? 'Year 6'}
           stats={stats}
