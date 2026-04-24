@@ -157,6 +157,7 @@ Click **Customise** in the dashboard top bar to open the panel editor.
 | Arbor AI pastoral dashboard | ✅ Done | CSV upload, role-filtered dashboard, AI pupil summaries, chat queries |
 | Mock auth (localStorage) | ✅ Done | `lib/auth/mockSession.ts`, `AuthGuard`, sign-in / sign-up pages |
 | Vercel deployment | ✅ Done | CI-clean build, `framework: nextjs`, typed routes, ES2018 target |
+| UI polish — unified shell | ✅ Done | Shared ChalkAI brand header, animated sliding-pill tool switcher, collapsible sidebar (mobile-ready), ChalkAI simplified to New Chat + Library, Customise moved to Arbor sidebar |
 | Real auth | 🔲 Next | Replace mock session with NextAuth.js — `UserRole` maps to session claims |
 | PostgreSQL | 🔲 Next | Replace `lib/data/mock.ts` + `lib/schoolStore.ts` with Prisma queries |
 | Arbor MIS API | 🔲 Next | Replace `lib/csvParser.ts` with Arbor REST fetch — `ParsedSchoolData` shape stays identical |
