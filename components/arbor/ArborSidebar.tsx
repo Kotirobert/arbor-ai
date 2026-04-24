@@ -43,19 +43,32 @@ export function ArborSidebar({ role, editMode, onToggleEdit }: ArborSidebarProps
       </div>
 
       {/* Tool switcher */}
-      <div className="tool-switch">
-        <button className="tool-switch__btn tool-switch__btn--active">
+      <div className="tool-switch" style={{ position: 'relative' }}>
+        {/* sliding pill */}
+        <span style={{
+          position: 'absolute',
+          top: 3, bottom: 3, left: '50%',
+          width: 'calc(50% - 3px)',
+          background: 'var(--ink)',
+          borderRadius: 8,
+          transition: 'left 220ms cubic-bezier(.4,0,.2,1)',
+          pointerEvents: 'none',
+        }} />
+        <Link href={"/chalkai" as Route} className="tool-switch__btn" style={{ position: 'relative', zIndex: 1 }}>
+          <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
+          </svg>
+          Assistant
+        </Link>
+        <button
+          className="tool-switch__btn"
+          style={{ position: 'relative', zIndex: 1, color: 'var(--paper)' }}
+        >
           <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
           </svg>
           Arbor AI
         </button>
-        <Link href={"/chalkai" as Route} className="tool-switch__btn">
-          <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
-          </svg>
-          ChalkAI
-        </Link>
       </div>
 
       {/* Workspace nav */}
