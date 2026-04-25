@@ -53,8 +53,6 @@ interface DashboardClientProps {
   subjectAttainment: Record<string, { pre: number; wt: number; exp: number; gd: number }>
   aiChips:           string[]
   suggestedPrompts:  string[]
-  editMode:          boolean
-  onToggleEdit:      () => void
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -73,8 +71,6 @@ export function DashboardClient({
   attInsights, behInsights,
   subjectAttainment: initialSubjects,
   aiChips, suggestedPrompts,
-  editMode,
-  onToggleEdit,
 }: DashboardClientProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -158,15 +154,15 @@ export function DashboardClient({
 
   // ── Config / edit mode ────────────────────────────────────
   const {
-    draft, isDirty,
-    togglePanel, save, reset, isVisible,
+    draft, isDirty, editMode,
+    openEdit, closeEdit, togglePanel, save, reset, isVisible,
   } = useDashboardConfig(role)
 
   function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
     startTransition(() => router.push(`/arbor/dashboard?role=${role}&year=${e.target.value}`))
   }
-  function handleSave() { save(); if (editMode) onToggleEdit(); toast('Dashboard layout saved', 'success') }
-  function handleReset() { reset(); if (editMode) onToggleEdit(); toast('Layout reset to default') }
+  function handleSave() { save(); toast('Dashboard layout saved', 'success') }
+  function handleReset() { reset(); toast('Layout reset to default') }
 
   const scopeLabel =
     role === 'slt'     ? 'Viewing all year groups — Reception to Year 6' :
@@ -180,17 +176,17 @@ export function DashboardClient({
 
   return (
     <main className="app__main" style={{ background: 'var(--paper)', overflowY: 'auto' }}>
-    <div style={{ padding: '32px 32px 48px' }}>
+    <div className="px-4 pt-6 pb-12 md:px-8 md:pt-8 lg:px-8">
     <div style={{ display: editMode ? 'flex' : 'block', gap: editMode ? 24 : 0, alignItems: 'flex-start' }}>
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--ink)', display: 'inline-block' }} />
-              <span style={{ fontFamily: 'var(--f-display)', fontSize: 28, letterSpacing: '-0.01em' }}>ChalkAI</span>
-            </div>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Arbor AI · School overview</div>
+            <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
+              A calm view of your <i style={{ color: 'var(--chalk-green)' }}>school, today.</i>
+            </h1>
             <p style={{ color: 'var(--ink-2)', fontSize: 14, marginTop: 10 }}>
               {scopeLabel}
               {lastImport && <span style={{ color: 'var(--ink-3)' }}> · imported {lastImport}</span>}
@@ -216,6 +212,23 @@ export function DashboardClient({
               </select>
             )}
 
+            <button
+              onClick={() => router.push('/arbor/upload' as any)}
+              className="btn btn--ghost btn--sm"
+            >
+              <svg className="ico" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              {dataSource === 'uploaded' ? 'Re-upload' : 'Upload data'}
+            </button>
+
+            <button
+              onClick={editMode ? closeEdit : openEdit}
+
+              className={`btn btn--sm ${editMode ? 'btn--primary' : 'btn--ghost'}`}
+            >
+              {editMode ? 'Exit customise' : 'Customise'}
+            </button>
           </div>
         </div>
 
@@ -239,7 +252,7 @@ export function DashboardClient({
 
         {/* Priority + AI */}
         {(isVisible('priorityPupils') || isVisible('aiActions')) && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {isVisible('priorityPupils') && <PriorityPanel rows={liveRows} />}
             {isVisible('aiActions') && <AiActionsPanel chips={aiChips} prompts={suggestedPrompts} />}
           </div>
@@ -252,7 +265,7 @@ export function DashboardClient({
 
         {/* Attendance + insights + audit */}
         {(isVisible('attendanceBars') || isVisible('attainmentInsights') || isVisible('auditLog')) && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {isVisible('attendanceBars') && (
               <InsightsPanel
                 title="Attendance patterns"
@@ -290,7 +303,7 @@ export function DashboardClient({
           onToggle={togglePanel}
           onSave={handleSave}
           onReset={handleReset}
-          onClose={onToggleEdit}
+          onClose={closeEdit}
         />
       )}
     </div>
