@@ -185,7 +185,7 @@ export function ProfileWizard() {
                 Email and password — no SSO, no school code.
               </p>
               <div style={{ marginTop: 36, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="field">
                     <label className="field__label">First name</label>
                     <input className="input" placeholder="Sarah" value={state.firstName} onChange={(e) => update('firstName', e.target.value)} />
@@ -255,7 +255,7 @@ export function ProfileWizard() {
               </div>
               <div style={{ marginTop: 32 }}>
                 <div className="field__label" style={{ marginBottom: 8 }}>Typical lesson length</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {LESSON_LENS.map((l) => (
                     <SegBtn key={l} label={l} on={state.lessonLength === l} onClick={() => update('lessonLength', l)} />
                   ))}
