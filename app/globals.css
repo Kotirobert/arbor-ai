@@ -472,4 +472,30 @@
     height: 1px;
     background: linear-gradient(to right, transparent, var(--line-2), transparent);
   }
+
+  /* Horizontal scroll carousel — hides scrollbar cross-browser */
+  .card-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .card-carousel::-webkit-scrollbar { display: none; }
+  .card-carousel > * {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    width: min(85vw, 420px);
+  }
+  @media (min-width: 768px) {
+    .card-carousel {
+      display: grid;
+      overflow-x: visible;
+      scroll-snap-type: none;
+    }
+    .card-carousel > * {
+      width: auto;
+    }
+  }
 }

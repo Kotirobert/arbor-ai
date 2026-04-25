@@ -60,7 +60,7 @@ export function PricingTeaser() {
           <i style={{ color: 'var(--chalk-green)' }}>Simple for a whole school.</i>
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 56 }}>
+        <div className="card-carousel md:grid-cols-3" style={{ gap: 16, marginTop: 56 }}>
           {PLANS.map((plan) => (
             <div key={plan.name} style={{
               border: `1px solid ${plan.featured ? 'var(--ink)' : 'var(--line)'}`,

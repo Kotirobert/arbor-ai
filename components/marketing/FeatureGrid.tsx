@@ -16,7 +16,7 @@ export function FeatureGrid() {
           </p>
         </div>
 
-        <div style={{ marginTop: 56, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div className="card-carousel md:grid-cols-2" style={{ marginTop: 56, gap: 24 }}>
           {/* ChalkAI card */}
           <div style={{
             border: '1px solid var(--line)', borderRadius: 'var(--radius-xl)',
