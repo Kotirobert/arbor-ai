@@ -305,6 +305,11 @@
     grid-template-columns: 260px 1fr;
     min-height: 100vh;
   }
+  @media (max-width: 767px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+  }
   .app__sidebar {
     background: var(--paper-2);
     border-right: 1px solid var(--line);
@@ -351,7 +356,12 @@
     text-decoration: none;
     transition: all 0.15s ease;
   }
-  .tool-switch__btn--active { background: var(--ink); color: var(--paper); }
+  .tool-switch__btn:not(.tool-switch__btn--active):hover {
+    background: var(--line-2);
+    color: var(--ink);
+    transform: scale(1.02);
+  }
+  .tool-switch__btn--active { background: var(--ink); color: var(--paper); transform: none; }
 
   /* Sidebar nav groups */
   .side-group { display: flex; flex-direction: column; gap: 2px; }

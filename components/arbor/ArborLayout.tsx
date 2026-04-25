@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { ArborSidebar } from './ArborSidebar'
 import { DashboardClient } from '@/components/dashboard/DashboardClient'
 import type { UserRole, DashboardStats } from '@/types'
@@ -9,6 +9,8 @@ import type { PriorityRow, InsightItem, YearGroupBar } from '@/components/dashbo
 interface ArborLayoutProps {
   role:              UserRole
   yearGroup:         string
+  schoolName:        string
+  lastUpload:        string
   stats:             DashboardStats
   priorityRows:      PriorityRow[]
   yearGroupBars:     YearGroupBar[]
@@ -19,42 +21,23 @@ interface ArborLayoutProps {
   suggestedPrompts:  string[]
 }
 
-export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
-  const [editMode, setEditMode] = useState(false)
-  const handleToggleEdit = useCallback(() => setEditMode((e) => !e), [])
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+export function ArborLayout({ role, schoolName, lastUpload, ...rest }: ArborLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="app">
       <ArborSidebar
         role={role}
-        editMode={editMode}
-        onToggleEdit={handleToggleEdit}
-        sidebarOpen={sidebarOpen}
-        onCollapse={() => setSidebarOpen(false)}
+        schoolName={schoolName}
+        lastUpload={lastUpload}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
       <DashboardClient
         role={role}
-        editMode={editMode}
-        onToggleEdit={handleToggleEdit}
+        onOpenSidebar={() => setSidebarOpen(true)}
         {...rest}
       />
-      {!sidebarOpen && (
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="btn btn--ghost btn--sm"
-          style={{
-            position: 'fixed', top: 16, left: 16, zIndex: 50,
-            background: 'var(--paper)', border: '1px solid var(--line)',
-            padding: '6px 8px', borderRadius: 8,
-          }}
-          aria-label="Open sidebar"
-        >
-          <svg className="ico" viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
-            <path d="M3 12h18M3 6h18M3 18h18"/>
-          </svg>
-        </button>
-      )}
     </div>
   )
 }
