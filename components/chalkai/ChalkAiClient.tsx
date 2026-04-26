@@ -8,6 +8,7 @@ import { AssistantChat } from './AssistantChat'
 import { GeneratorPanel } from './GeneratorPanel'
 import { getProfile, getSession } from '@/lib/auth/mockSession'
 import type { ChalkAiSession, TeacherProfile } from '@/types'
+import type { ChatBubble } from './ChatMessage'
 
 function modeFromSearch(sp: URLSearchParams | null): ChalkAiMode {
   return sp?.get('mode') === 'generator' ? 'generator' : 'assistant'
@@ -21,6 +22,7 @@ export function ChalkAiClient() {
   const [session,      setSession]      = useState<ChalkAiSession | null>(null)
   const [profile,      setProfileState] = useState<TeacherProfile | null>(null)
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
+  const [messages,     setMessages]     = useState<ChatBubble[]>([])
 
   useEffect(() => {
     setSession(getSession())
@@ -163,7 +165,7 @@ export function ChalkAiClient() {
         {/* Panel */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {mode === 'assistant' ? (
-            <AssistantChat profile={profile} firstName={session?.firstName} />
+            <AssistantChat profile={profile} firstName={session?.firstName} messages={messages} onMessages={setMessages} />
           ) : (
             <GeneratorPanel profile={profile} />
           )}
