@@ -54,6 +54,8 @@ interface DashboardClientProps {
   aiChips:           string[]
   suggestedPrompts:  string[]
   onOpenSidebar?:    () => void
+  editMode?:         boolean
+  onToggleEdit?:     () => void
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -73,6 +75,8 @@ export function DashboardClient({
   subjectAttainment: initialSubjects,
   aiChips, suggestedPrompts,
   onOpenSidebar,
+  editMode: externalEditMode,
+  onToggleEdit,
 }: DashboardClientProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -156,9 +160,11 @@ export function DashboardClient({
 
   // ── Config / edit mode ────────────────────────────────────
   const {
-    draft, isDirty, editMode,
+    draft, isDirty, editMode: internalEditMode,
     openEdit, closeEdit, togglePanel, save, reset, isVisible,
   } = useDashboardConfig(role)
+
+  const editMode = externalEditMode ?? internalEditMode
 
   function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
     startTransition(() => router.push(`/arbor/dashboard?role=${role}&year=${e.target.value}`))
@@ -195,16 +201,6 @@ export function DashboardClient({
               </svg>
             </button>
           )}
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Arbor AI · School overview</div>
-            <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.02em', margin: 0 }}>
-              A calm view of your <i style={{ color: 'var(--chalk-green)' }}>school, today.</i>
-            </h1>
-            <p style={{ color: 'var(--ink-2)', fontSize: 14, marginTop: 10 }}>
-              {scopeLabel}
-              {lastImport && <span style={{ color: 'var(--ink-3)' }}> · imported {lastImport}</span>}
-            </p>
-          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {dataSource === 'uploaded' && (
@@ -225,23 +221,7 @@ export function DashboardClient({
               </select>
             )}
 
-            <button
-              onClick={() => router.push('/arbor/upload' as any)}
-              className="btn btn--ghost btn--sm"
-            >
-              <svg className="ico" viewBox="0 0 24 24">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-              </svg>
-              {dataSource === 'uploaded' ? 'Re-upload' : 'Upload data'}
-            </button>
 
-            <button
-              onClick={editMode ? closeEdit : openEdit}
-
-              className={`btn btn--sm ${editMode ? 'btn--primary' : 'btn--ghost'}`}
-            >
-              {editMode ? 'Exit customise' : 'Customise'}
-            </button>
           </div>
         </div>
 
@@ -316,7 +296,7 @@ export function DashboardClient({
           onToggle={togglePanel}
           onSave={handleSave}
           onReset={handleReset}
-          onClose={closeEdit}
+          onClose={() => { closeEdit(); onToggleEdit?.() }}
         />
       )}
     </div>

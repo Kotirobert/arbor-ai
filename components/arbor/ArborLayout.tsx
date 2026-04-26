@@ -23,6 +23,11 @@ interface ArborLayoutProps {
 
 export function ArborLayout({ role, schoolName, lastUpload, ...rest }: ArborLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [editMode, setEditMode]       = useState(false)
+
+  function toggleEdit() {
+    setEditMode((m) => !m)
+  }
 
   return (
     <div className="app">
@@ -32,10 +37,14 @@ export function ArborLayout({ role, schoolName, lastUpload, ...rest }: ArborLayo
         lastUpload={lastUpload}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        editMode={editMode}
+        onCustomise={toggleEdit}
       />
       <DashboardClient
         role={role}
         onOpenSidebar={() => setSidebarOpen(true)}
+        editMode={editMode}
+        onToggleEdit={toggleEdit}
         {...rest}
       />
     </div>

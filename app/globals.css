@@ -294,6 +294,14 @@
     align-items: center;
     justify-content: center;
   }
+  @media (max-width: 767px) {
+    .auth {
+      grid-template-columns: 1fr;
+    }
+    .auth__aside {
+      display: none;
+    }
+  }
   .auth__form {
     width: 100%;
     max-width: 380px;

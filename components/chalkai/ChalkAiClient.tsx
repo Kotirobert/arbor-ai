@@ -91,15 +91,6 @@ export function ChalkAiClient() {
               </svg>
               Assistant
             </button>
-            <button
-              onClick={() => { handleMode('generator'); setSidebarOpen(false) }}
-              className={`side-link${mode === 'generator' ? ' side-link--active' : ''}`}
-            >
-              <svg className="ico side-link__icon" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>
-              </svg>
-              Generator
-            </button>
             <div className="side-link">
               <svg className="ico side-link__icon" viewBox="0 0 24 24">
                 <path d="M3 7h18M3 12h18M3 17h18"/>
@@ -126,42 +117,6 @@ export function ChalkAiClient() {
 
       {/* Main content */}
       <main className="app__main">
-        {/* Topbar */}
-        <div style={{
-          height: 64, borderBottom: '1px solid var(--line)', display: 'flex',
-          alignItems: 'center', justifyContent: 'space-between', padding: '0 28px',
-          background: 'var(--paper)', flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Hamburger — mobile only */}
-            <button
-              className="flex md:hidden items-center justify-center p-1.5 rounded-md mr-1"
-              onClick={() => setSidebarOpen((o) => !o)}
-              aria-label="Toggle sidebar"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M3 6h18M3 12h18M3 18h18"/>
-              </svg>
-            </button>
-            <div style={{ fontFamily: 'var(--f-body)', fontSize: 13, color: 'var(--ink-2)', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span>ChalkAI</span>
-              <span style={{ color: 'var(--ink-3)' }}>/</span>
-              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>
-                {mode === 'assistant' ? 'Assistant' : 'Generator'}
-              </span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {profile && (
-              <span className="tag tag--green">
-                <span className="tag__dot" />
-                Profile active
-              </span>
-            )}
-            <ModeTabs value={mode} onChange={handleMode} />
-          </div>
-        </div>
-
         {/* Panel */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {mode === 'assistant' ? (

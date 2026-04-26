@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatMessage, type ChatBubble } from './ChatMessage'
-import { SlashCommandHint } from './SlashCommandHint'
-import { SLASH_COMMANDS } from '@/lib/chalkai/slashCommands'
 import { mockReply, streamText } from '@/lib/chalkai/mockAssistant'
 import type { TeacherProfile } from '@/types'
 import { cn } from '@/lib/utils'
@@ -20,14 +18,11 @@ const STARTERS: { label: string; prompt: string }[] = [
   { label: 'Write a parent email',       prompt: 'Write a parent email about homework concerns for Year 5.' },
   { label: 'Make a 10-question quiz',    prompt: 'Make a 10-question quiz on the water cycle for Year 6.' },
   { label: 'Differentiated worksheet',   prompt: 'Differentiated worksheet on place value for Year 3.' },
-  { label: '/retrieval on place value',  prompt: '/retrieval on place value' },
-  { label: '/hinge on photosynthesis',   prompt: '/hinge on photosynthesis' },
 ]
 
 export function AssistantChat({ profile, firstName, messages, onMessages }: Props) {
-  const [input, setInput]       = useState('')
-  const [busy, setBusy]         = useState(false)
-  const [hintIdx, setHintIdx]   = useState(0)
+  const [input, setInput] = useState('')
+  const [busy, setBusy]   = useState(false)
 
   const scrollRef    = useRef<HTMLDivElement | null>(null)
   const abortRef     = useRef<(() => void) | null>(null)
@@ -73,23 +68,7 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
     )
   }, [busy, profile, onMessages])
 
-  const showHint = input.startsWith('/') && !input.includes(' ')
-  const filteredHintCount = showHint
-    ? SLASH_COMMANDS.filter((c) => c.cmd.slice(1).toLowerCase().startsWith(input.slice(1).toLowerCase())).length
-    : 0
-
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (showHint && filteredHintCount > 0) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setHintIdx((i) => (i + 1) % filteredHintCount); return }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setHintIdx((i) => (i - 1 + filteredHintCount) % filteredHintCount); return }
-      if (e.key === 'Tab' || e.key === 'Enter') {
-        e.preventDefault()
-        const matches = SLASH_COMMANDS.filter((c) => c.cmd.slice(1).toLowerCase().startsWith(input.slice(1).toLowerCase()))
-        const pick = matches[hintIdx % matches.length]
-        if (pick) setInput(pick.cmd + ' ')
-        return
-      }
-    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send(input)
@@ -108,14 +87,12 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
         {!hasMessages ? (
           <div className="mx-auto max-w-2xl pt-6 md:pt-12">
             <div className="mb-8 text-center">
-              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#e8a32a,#c9801a)]">
-                <span className="font-display text-lg font-bold text-[#0e0f0d]">C</span>
-              </div>
+
               <h2 className="font-serif text-3xl italic text-[var(--ink)]">
                 How can I help{firstName ? `, ${firstName}` : ''}?
               </h2>
               <p className="mt-2 text-sm text-[var(--ink2)]">
-                Ask for a resource in plain English, or start with a slash command.
+                Ask for a resource in plain English.
               </p>
             </div>
 
@@ -137,22 +114,6 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
               ))}
             </div>
 
-            <div className="chalkai-divider my-8" />
-
-            <div className="text-center text-[11px] uppercase tracking-widest text-[var(--ink3)]">
-              Slash commands
-            </div>
-            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
-              {SLASH_COMMANDS.map((c) => (
-                <button
-                  key={c.cmd}
-                  onClick={() => setInput(c.cmd + ' ')}
-                  className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 font-mono text-[11px] text-[var(--ink2)] transition-colors hover:border-[var(--amber-border)] hover:text-[var(--amber)]"
-                >
-                  {c.cmd}
-                </button>
-              ))}
-            </div>
           </div>
         ) : (
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
@@ -175,21 +136,13 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
       {/* Input */}
       <div className="sticky bottom-0 border-t border-[var(--border)] bg-[rgba(14,15,13,0.88)] px-4 pb-4 pt-3 backdrop-blur-md md:px-8">
         <div className="relative mx-auto max-w-3xl">
-          {showHint && (
-            <SlashCommandHint
-              query={input}
-              active={hintIdx}
-              onPick={(cmd) => { setInput(cmd); setHintIdx(0) }}
-              onMove={(delta) => setHintIdx((i) => i + delta)}
-            />
-          )}
           <div className="flex items-end gap-2 rounded-2xl border border-[var(--border2)] bg-[var(--surface)] px-3 py-2 focus-within:border-[var(--amber-border)]">
             <textarea
               value={input}
-              onChange={(e) => { setInput(e.target.value); setHintIdx(0) }}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
               rows={1}
-              placeholder={'Ask for a lesson plan, worksheet, email \u2014 or type "/" for shortcuts'}
+              placeholder="Ask for a lesson plan, worksheet, email…"
               className="min-h-[28px] max-h-40 flex-1 resize-none bg-transparent px-2 py-1 text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink3)]"
             />
             <button
@@ -210,7 +163,7 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
             </button>
           </div>
           <div className="mt-2 flex items-center justify-between px-1 text-[10.5px] text-[var(--ink3)]">
-            <span>Press <kbd className="rounded bg-[var(--surface3)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--ink2)]">Enter</kbd> to send · <kbd className="rounded bg-[var(--surface3)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--ink2)]">/</kbd> for commands</span>
+            <span>Press <kbd className="rounded bg-[var(--surface3)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--ink2)]">Enter</kbd> to send</span>
             <span>Responses are illustrative demos.</span>
           </div>
         </div>

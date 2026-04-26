@@ -7,14 +7,16 @@ import { getSession } from '@/lib/auth/mockSession'
 import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
-  role:       UserRole
-  schoolName: string
-  lastUpload: string
-  open?:      boolean
-  onClose?:   () => void
+  role:          UserRole
+  schoolName:    string
+  lastUpload:    string
+  open?:         boolean
+  onClose?:      () => void
+  editMode?:     boolean
+  onCustomise?:  () => void
 }
 
-export function ArborSidebar({ role, schoolName, lastUpload, open = true, onClose }: ArborSidebarProps) {
+export function ArborSidebar({ role, schoolName, lastUpload, open = true, onClose, editMode, onCustomise }: ArborSidebarProps) {
   const pathname     = usePathname()
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -104,6 +106,17 @@ export function ArborSidebar({ role, schoolName, lastUpload, open = true, onClos
             </svg>
             Upload data
           </Link>
+          {onCustomise && (
+            <button
+              onClick={() => { onCustomise(); onClose?.() }}
+              className={`side-link${editMode ? ' side-link--active' : ''}`}
+            >
+              <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              {editMode ? 'Exit customise' : 'Customise'}
+            </button>
+          )}
         </div>
 
         {/* View as */}
