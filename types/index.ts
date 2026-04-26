@@ -124,7 +124,59 @@ export type ApiResult<T> = ApiResponse<T> | ApiError
 
 // ── ChalkAI resource types ────────────────────────────────────
 
-export type ResourceType = 'lesson_plan' | 'worksheet' | 'quiz' | 'parent_email'
+export type ResourceType =
+  | 'lesson_plan'
+  | 'worksheet'
+  | 'quiz'
+  | 'parent_email'
+  | 'image'
+  | 'presentation'
+
+export interface PIIFinding {
+  type:     string
+  match:    string
+  start:    number
+  end:      number
+  severity: 'warn' | 'block'
+}
+
+export interface GenerateRequest {
+  resourceType: ResourceType
+  input:        string
+  profile: {
+    curriculum:        string
+    yearGroup:         string
+    subjectSpecialism: string
+    classProfile:      string
+    lessonLength:      string
+    outputStyle:       string
+  }
+  resourceSpecificFields?: Record<string, string | number | boolean>
+}
+
+export type GenerateResponse =
+  | { type: 'text';        output: string; piiFindings: PIIFinding[] }
+  | { type: 'image';       output: string; mimeType: 'image/png' }
+  | { type: 'pptx';        output: string; filename: string }
+  | { type: 'pii_blocked'; piiFindings: PIIFinding[]; sanitised: string }
+  | { type: 'error';       error: 'API_KEY_NOT_CONFIGURED' | 'GENERATION_FAILED'; message: string }
+
+export interface GenerateFormInput {
+  resourceType:  ResourceType
+  topic:         string
+  yearGroup:     string
+  subject?:      string
+  duration?:     string
+  notes?:        string
+  numQuestions?: string
+  tone?:         string
+  purpose?:      string
+  intendedUse?:  'poster' | 'diagram' | 'display' | 'scene'
+  orientation?:  'landscape' | 'portrait' | 'square'
+  objectives?:   string
+  slideCount?:   number
+  speakerNotes?: boolean
+}
 
 export interface SavedResource {
   id:        string
