@@ -11,7 +11,7 @@ export default function LandingPage() {
   return (
     <div>
       <MarketingNav />
-      <AuroraBackground className="h-auto min-h-0 justify-start bg-paper dark:bg-zinc-900" showRadialGradient={false}>
+      <AuroraBackground className="h-auto min-h-0 justify-start bg-paper" showRadialGradient={false}>
         <main className="w-full">
           <Hero />
           <FeatureGrid />

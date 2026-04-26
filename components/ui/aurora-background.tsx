@@ -17,7 +17,7 @@ export const AuroraBackground = ({
     <main>
       <div
         className={cn(
-          "relative flex flex-col  h-[100vh] items-center justify-center bg-zinc-50 dark:bg-zinc-900  text-slate-950 transition-bg",
+          "relative flex flex-col  h-[100vh] items-center justify-center bg-zinc-50 text-slate-950 transition-bg",
           className
         )}
         {...props}
@@ -33,9 +33,8 @@ export const AuroraBackground = ({
             dark:[background-image:var(--dark-gradient),var(--aurora)]
             [background-size:300%,_200%]
             [background-position:50%_50%,50%_50%]
-            filter blur-[10px] invert dark:invert-0
+            filter blur-[10px] invert
             after:content-[""] after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)]
-            after:dark:[background-image:var(--dark-gradient),var(--aurora)]
             after:[background-size:200%,_100%]
             after:animate-aurora after:[background-attachment:fixed] after:mix-blend-difference
             pointer-events-none
