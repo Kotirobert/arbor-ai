@@ -1,14 +1,19 @@
-import type { GenerateRequest, GenerateResponse } from '@/types'
+import type { GenerateRequest, PIIFinding } from '@/types'
 import { generateText, generateJSON, getSystemRole } from './openaiClient'
 import { generateImage } from './openaiImageClient'
 import { themeAndIllustrate, type SlideContent } from './gemmaClient'
 import { buildPptx } from './pptxBuilder'
 import { buildImagePrompt } from './templates/image'
 
+export type ModelResult =
+  | { type: 'text';  output: string; piiFindings: PIIFinding[] }
+  | { type: 'image'; output: string; mimeType: 'image/png' }
+  | { type: 'pptx';  output: string; filename: string }
+
 export async function routeToModel(
   enrichedPrompt: string,
   req: GenerateRequest,
-): Promise<Omit<GenerateResponse, 'piiFindings'>> {
+): Promise<ModelResult> {
   const { resourceType, input, profile, resourceSpecificFields = {} } = req
 
   switch (resourceType) {
