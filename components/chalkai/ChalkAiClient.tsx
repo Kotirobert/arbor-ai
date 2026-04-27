@@ -69,7 +69,7 @@ export function ChalkAiClient() {
               <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">
                 <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
               </svg>
-              ChalkAI
+              Assistant
             </button>
             <Link href="/arbor/dashboard" className="tool-switch__btn">
               <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24">

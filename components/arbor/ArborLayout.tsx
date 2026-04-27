@@ -9,8 +9,6 @@ import type { PriorityRow, InsightItem, YearGroupBar } from '@/components/dashbo
 interface ArborLayoutProps {
   role:              UserRole
   yearGroup:         string
-  schoolName:        string
-  lastUpload:        string
   stats:             DashboardStats
   priorityRows:      PriorityRow[]
   yearGroupBars:     YearGroupBar[]
@@ -21,7 +19,7 @@ interface ArborLayoutProps {
   suggestedPrompts:  string[]
 }
 
-export function ArborLayout({ role, schoolName, lastUpload, ...rest }: ArborLayoutProps) {
+export function ArborLayout({ role, ...rest }: ArborLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editMode, setEditMode]       = useState(false)
 
@@ -33,8 +31,6 @@ export function ArborLayout({ role, schoolName, lastUpload, ...rest }: ArborLayo
     <div className="app">
       <ArborSidebar
         role={role}
-        schoolName={schoolName}
-        lastUpload={lastUpload}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         editMode={editMode}

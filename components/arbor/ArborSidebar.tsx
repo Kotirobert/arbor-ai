@@ -8,15 +8,13 @@ import type { UserRole } from '@/types'
 
 interface ArborSidebarProps {
   role:          UserRole
-  schoolName:    string
-  lastUpload:    string
   open?:         boolean
   onClose?:      () => void
   editMode?:     boolean
   onCustomise?:  () => void
 }
 
-export function ArborSidebar({ role, schoolName, lastUpload, open = true, onClose, editMode, onCustomise }: ArborSidebarProps) {
+export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise }: ArborSidebarProps) {
   const pathname     = usePathname()
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -42,45 +40,39 @@ export function ArborSidebar({ role, schoolName, lastUpload, open = true, onClos
   return (
     <div className={open ? 'block' : 'hidden md:block'}>
       <aside className="app__sidebar">
-        {/* Brand + school info */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="nav__brand" style={{ fontSize: 22 }}>
-              <span className="nav__brand-mark" />
-              <span>Arbor AI</span>
-            </div>
-            {/* Close button — mobile only */}
-            {onClose && (
-              <button
-                className="flex md:hidden items-center justify-center p-1.5 rounded-md"
-                onClick={onClose}
-                aria-label="Close sidebar"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M18 6L6 18M6 6l12 12"/>
-                </svg>
-              </button>
-            )}
+        {/* Brand + close button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="nav__brand" style={{ fontSize: 22 }}>
+            <span className="nav__brand-mark" />
+            <span>ChalkAI</span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4, paddingLeft: 30, lineHeight: 1.4 }}>
-            {schoolName} · {lastUpload}
-          </div>
+          {onClose && (
+            <button
+              className="flex md:hidden items-center justify-center p-1.5 rounded-md"
+              onClick={onClose}
+              aria-label="Close sidebar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Tool switcher */}
         <div className="tool-switch">
+          <Link href="/chalkai" className="tool-switch__btn">
+            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
+            </svg>
+            Assistant
+          </Link>
           <button className="tool-switch__btn tool-switch__btn--active">
             <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
             </svg>
             Arbor AI
           </button>
-          <Link href="/chalkai" className="tool-switch__btn">
-            <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
-            </svg>
-            ChalkAI
-          </Link>
         </div>
 
         {/* Workspace nav */}
