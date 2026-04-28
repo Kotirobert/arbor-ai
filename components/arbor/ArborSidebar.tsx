@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import type { Route } from 'next'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSession } from '@/lib/auth/mockSession'
 import type { UserRole } from '@/types'
+
+const CHALKAI_ROUTE = '/chalkai' as Route
 
 interface ArborSidebarProps {
   role:          UserRole
@@ -61,7 +64,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
 
         {/* Tool switcher */}
         <div className="tool-switch">
-          <Link href="/chalkai" className="tool-switch__btn">
+          <Link href={CHALKAI_ROUTE} className="tool-switch__btn">
             <svg className="ico" style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 21v-5l9-9 5 5-9 9H3z"/><path d="M12 7l5 5"/>
             </svg>

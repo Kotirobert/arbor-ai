@@ -215,7 +215,7 @@ export default function ArborUploadPage() {
 
   return (
     <div className="app">
-      <Suspense fallback={null}><ArborSidebar role="slt" editMode={false} onToggleEdit={() => {}} sidebarOpen={true} onCollapse={() => {}} /></Suspense>
+      <Suspense fallback={null}><ArborSidebar role="slt" open={true} editMode={false} /></Suspense>
       <main className="app__main" style={{ overflowY: 'auto', background: 'var(--paper-2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', minHeight: '100%' }}>
           <div style={{ width: '100%', maxWidth: 540 }}>
