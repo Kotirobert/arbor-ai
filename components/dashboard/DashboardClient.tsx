@@ -192,12 +192,12 @@ export function DashboardClient({
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
           {onOpenSidebar && (
             <button
-              className="flex md:hidden items-center justify-center p-1.5 rounded-md self-start mt-1"
+              className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border2)] bg-[var(--paper)] text-[var(--ink)] shadow-sm md:hidden"
               onClick={onOpenSidebar}
               aria-label="Open sidebar"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M3 6h18M3 12h18M3 18h18"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16"/>
               </svg>
             </button>
           )}

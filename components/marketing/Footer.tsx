@@ -13,10 +13,6 @@ export function Footer() {
               <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--ink)', display: 'inline-block', position: 'relative', flexShrink: 0 }} />
               ChalkAI
             </div>
-            <p style={{ maxWidth: '34ch', margin: 0 }}>
-              Built in Bristol for UK primary and secondary schools.
-              GDPR-ready. Data stays in your browser until you save it.
-            </p>
           </div>
 
           <div>
@@ -51,7 +47,6 @@ export function Footer() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 24, borderTop: '1px solid var(--line)', fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap', gap: 8 }}>
           <span>© 2026 ChalkAI Ltd.</span>
-          <span>Made with care · Bristol, UK</span>
         </div>
       </div>
     </footer>

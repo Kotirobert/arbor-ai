@@ -4,20 +4,6 @@ export function Hero() {
   return (
     <section className="hero" style={{ padding: 'clamp(48px, 8vw, 96px) 0 clamp(64px, 10vw, 120px)' }}>
       <div className="container">
-        <span className="hero__badge" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 10,
-          padding: '7px 14px 7px 8px', border: '1px solid var(--line-2)',
-          borderRadius: 100, fontSize: 13, color: 'var(--ink-2)',
-          marginBottom: 36, background: 'var(--paper)'
-        }}>
-          <span style={{
-            background: 'var(--ink)', color: 'var(--paper)',
-            fontSize: 11, padding: '3px 9px', borderRadius: 100,
-            fontFamily: 'var(--f-ui)', fontWeight: 700, letterSpacing: '0.04em'
-          }}>New</span>
-          Arbor AI pastoral insights are now part of ChalkAI
-        </span>
-
         <h1 className="display" style={{ color: 'var(--ink)' }}>
           Teaching tools<br />
           and school data,<br />

@@ -58,9 +58,21 @@ export function ChalkAiClient() {
       {/* Sidebar — hidden on mobile until hamburger opens it */}
       <div className={sidebarOpen ? 'block' : 'hidden md:block'}>
         <aside className="app__sidebar">
-          <div className="nav__brand" style={{ fontSize: 22 }}>
-            <span className="nav__brand-mark" />
-            <span>ChalkAI</span>
+          <div className="flex items-center justify-between">
+            <div className="nav__brand" style={{ fontSize: 22 }}>
+              <span className="nav__brand-mark" />
+              <span>ChalkAI</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-md text-[var(--ink2)] md:hidden"
+              aria-label="Close menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           {/* Tool switcher */}
@@ -89,7 +101,7 @@ export function ChalkAiClient() {
               <svg className="ico side-link__icon" viewBox="0 0 24 24">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
               </svg>
-              Assistant
+              New chat
             </button>
             <div className="side-link">
               <svg className="ico side-link__icon" viewBox="0 0 24 24">
@@ -116,7 +128,19 @@ export function ChalkAiClient() {
       </div>
 
       {/* Main content */}
-      <main className="app__main">
+      <main className="app__main relative">
+        {!sidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border2)] bg-[var(--paper)] text-[var(--ink)] shadow-sm md:hidden"
+            aria-label="Open menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        )}
         {/* Panel */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {mode === 'assistant' ? (
