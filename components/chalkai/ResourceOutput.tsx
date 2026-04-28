@@ -79,7 +79,7 @@ export function ResourceOutput({ response, topic, onSave, saved }: Props) {
       navigator.clipboard.writeText(response.output).catch(() => {})
     }
     setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (response.type === 'image') {

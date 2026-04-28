@@ -7,8 +7,9 @@ import { GeneratorForm } from './GeneratorForm'
 import { ResourceOutput } from './ResourceOutput'
 import { PIIWarningBanner } from './PIIWarningBanner'
 import { LoadingState } from './LoadingState'
+import { saveResource } from '@/lib/chalkai/resourceStore'
 import type {
-  ResourceType, TeacherProfile, SavedResource,
+  ResourceType, TeacherProfile,
   GenerateFormInput, GenerateResponse, PIIFinding,
 } from '@/types'
 
@@ -22,18 +23,6 @@ type PanelState =
   | { status: 'pii_blocked'; findings: PIIFinding[]; sanitised: string }
   | { status: 'done'; response: GenerateResponse & { type: 'text' | 'image' | 'pptx' }; piiFindings?: PIIFinding[]; formInput: GenerateFormInput }
   | { status: 'error'; message: string; isKeyMissing: boolean }
-
-const HISTORY_KEY = 'chalkai-history'
-
-function appendHistory(r: SavedResource) {
-  if (typeof window === 'undefined') return
-  try {
-    const raw  = window.localStorage.getItem(HISTORY_KEY)
-    const list: SavedResource[] = raw ? JSON.parse(raw) : []
-    list.unshift(r)
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 50)))
-  } catch { /* noop */ }
-}
 
 function profileToRequestProfile(p: TeacherProfile | null, yearGroup: string) {
   return {
@@ -110,19 +99,15 @@ export function GeneratorPanel({ profile }: Props) {
   const handleSave = () => {
     if (state.status !== 'done' || !lastInput) return
     const { response } = state
-    const rec: SavedResource = {
-      id:        `res-${Date.now()}`,
-      type:      selected,
-      title:     lastInput.topic,
-      topic:     lastInput.topic,
-      yearGroup: lastInput.yearGroup,
-      subject:   lastInput.subject,
-      content:   response.output,
+    saveResource({
+      type:         response.type,
+      resourceType: selected,
+      title:        lastInput.topic,
+      output:       response.output,
       createdAt: new Date().toISOString(),
-    }
-    appendHistory(rec)
+    })
     setSaved(true)
-    setTimeout(() => setSaved(false), 2200)
+    setTimeout(() => setSaved(false), 3000)
   }
 
   return (

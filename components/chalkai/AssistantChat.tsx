@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatMessage, type ChatBubble } from './ChatMessage'
-import { mockReply, streamText } from '@/lib/chalkai/mockAssistant'
+import { postChat } from '@/lib/chalkai/chatClient'
 import type { TeacherProfile } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -25,7 +25,6 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
   const [busy, setBusy]   = useState(false)
 
   const scrollRef    = useRef<HTMLDivElement | null>(null)
-  const abortRef     = useRef<(() => void) | null>(null)
   const messagesRef  = useRef<ChatBubble[]>(messages)
 
   useEffect(() => { messagesRef.current = messages }, [messages])
@@ -34,38 +33,35 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
-  useEffect(() => {
-    return () => abortRef.current?.()
-  }, [])
-
-  const send = useCallback((raw: string) => {
+  const send = useCallback(async (raw: string) => {
     const text = raw.trim()
     if (!text || busy) return
 
+    const previousMessages = messagesRef.current
     const userMsg: ChatBubble = { id: `u-${Date.now()}`, role: 'user', body: text }
     const asstId = `a-${Date.now() + 1}`
-    const reply  = mockReply(text, profile)
+    const pendingReply: ChatBubble = { id: asstId, role: 'assistant', body: '', streaming: true }
 
-    onMessages([
-      ...messagesRef.current,
-      userMsg,
-      { id: asstId, role: 'assistant', title: reply.title, body: '', streaming: true, options: reply.options },
-    ])
+    onMessages([...previousMessages, userMsg, pendingReply])
     setInput('')
     setBusy(true)
 
-    abortRef.current = streamText(
-      reply.body,
-      (soFar) => {
-        onMessages(messagesRef.current.map((msg) => (msg.id === asstId ? { ...msg, body: soFar } : msg)))
-      },
-      () => {
-        onMessages(messagesRef.current.map((msg) => (msg.id === asstId ? { ...msg, streaming: false } : msg)))
-        setBusy(false)
-        abortRef.current = null
-      },
-      9,
-    )
+    const history = previousMessages
+      .filter((msg) => (msg.role === 'user' || msg.role === 'assistant') && msg.body.trim().length > 0)
+      .map((msg) => ({ role: msg.role, body: msg.body }))
+
+    try {
+      const reply = await postChat(history, text, profile)
+      onMessages([...previousMessages, userMsg, { ...pendingReply, body: reply, streaming: false }])
+    } catch {
+      onMessages([
+        ...previousMessages,
+        userMsg,
+        { ...pendingReply, body: 'Something went wrong — please try again.', streaming: false },
+      ])
+    } finally {
+      setBusy(false)
+    }
   }, [busy, profile, onMessages])
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -164,7 +160,6 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
           </div>
           <div className="mt-2 flex items-center justify-between px-1 text-[10.5px] text-[var(--ink3)]">
             <span>Press <kbd className="rounded bg-[var(--surface3)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--ink2)]">Enter</kbd> to send</span>
-            <span>Responses are illustrative demos.</span>
           </div>
         </div>
       </div>
