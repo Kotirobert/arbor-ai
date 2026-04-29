@@ -337,6 +337,40 @@
     min-width: 0;
   }
 
+  @media (max-width: 960px) {
+    .attainment-upload-grid,
+    .attainment-dashboard-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media print {
+    body {
+      background: #fff;
+    }
+    .app {
+      display: block;
+      min-height: auto;
+    }
+    .app__sidebar,
+    .no-print {
+      display: none !important;
+    }
+    .app__main {
+      min-height: auto;
+      display: block;
+      background: #fff !important;
+      overflow: visible !important;
+    }
+    .attainment-print-root > div {
+      max-width: none !important;
+      padding: 0 !important;
+    }
+    table {
+      break-inside: avoid;
+    }
+  }
+
   /* Tool switcher */
   .tool-switch {
     display: grid;
