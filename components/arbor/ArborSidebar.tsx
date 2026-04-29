@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth/mockSession'
 import type { UserRole } from '@/types'
 
 const CHALKAI_ROUTE = '/chalkai' as Route
+const REPORT_ROUTE = '/arbor/reports' as Route
 
 interface ArborSidebarProps {
   role:          UserRole
@@ -39,6 +40,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
 
   const isDashboard = pathname === '/arbor/dashboard' || (pathname?.startsWith('/arbor/pupil') ?? false)
   const isUpload    = pathname === '/arbor/upload'
+  const isReport    = pathname === '/arbor/reports'
 
   return (
     <div className={open ? 'block' : 'hidden md:block'}>
@@ -100,6 +102,18 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
             </svg>
             Upload data
+          </Link>
+          <Link
+            href={REPORT_ROUTE}
+            className={`side-link${isReport ? ' side-link--active' : ''}`}
+            onClick={onClose}
+          >
+            <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/>
+              <path d="M8 13h8M8 17h5"/>
+            </svg>
+            Reports
           </Link>
           {onCustomise && (
             <button
