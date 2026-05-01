@@ -1,5 +1,5 @@
 import pptxgen from 'pptxgenjs'
-import type { ThemedDeck } from './gemmaClient'
+import type { ThemedDeck } from './gammaClient'
 
 export async function buildPptx(deck: ThemedDeck): Promise<string> {
   const pptx = new pptxgen()

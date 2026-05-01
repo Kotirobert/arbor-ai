@@ -30,3 +30,5 @@ Thumbs.db
 .vercel
 .worktrees/
 .data/
+.codex/
+.claude/worktrees/

@@ -157,7 +157,7 @@ export interface GenerateRequest {
 export type GenerateResponse =
   | { type: 'text';        output: string; piiFindings: PIIFinding[] }
   | { type: 'image';       output: string; mimeType: 'image/png' }
-  | { type: 'pptx';        output: string; filename: string }
+  | { type: 'pptx';        output: string; filename: string; gammaUrl?: string }
   | { type: 'pii_blocked'; piiFindings: PIIFinding[]; sanitised: string }
   | { type: 'error';       error: 'API_KEY_NOT_CONFIGURED' | 'GENERATION_FAILED'; message: string }
 

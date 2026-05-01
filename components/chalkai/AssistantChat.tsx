@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatMessage, type ChatBubble } from './ChatMessage'
 import { postChat } from '@/lib/chalkai/chatClient'
-import type { TeacherProfile } from '@/types'
+import {
+  buildAssistantGenerateRequest,
+  detectAssistantResourceType,
+} from '@/lib/chalkai/assistantResourceIntent'
+import type { GenerateResponse, TeacherProfile } from '@/types'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -12,13 +16,6 @@ interface Props {
   messages:   ChatBubble[]
   onMessages: (msgs: ChatBubble[]) => void
 }
-
-const STARTERS: { label: string; prompt: string }[] = [
-  { label: 'Draft a lesson plan',        prompt: 'Draft a lesson plan on fractions for Year 4, 45 mins, mixed ability.' },
-  { label: 'Write a parent email',       prompt: 'Write a parent email about homework concerns for Year 5.' },
-  { label: 'Make a 10-question quiz',    prompt: 'Make a 10-question quiz on the water cycle for Year 6.' },
-  { label: 'Differentiated worksheet',   prompt: 'Differentiated worksheet on place value for Year 3.' },
-]
 
 export function AssistantChat({ profile, firstName, messages, onMessages }: Props) {
   const [input, setInput] = useState('')
@@ -51,6 +48,57 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
       .map((msg) => ({ role: msg.role, body: msg.body }))
 
     try {
+      const resourceType = detectAssistantResourceType(text)
+
+      if (resourceType) {
+        const res = await fetch('/api/chalkai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildAssistantGenerateRequest({ message: text, resourceType, profile })),
+        })
+        const data = await res.json() as GenerateResponse
+
+        if (data.type === 'image' || data.type === 'pptx') {
+          const body = data.type === 'image'
+            ? 'I made the image. You can preview and download it below.'
+            : 'I made the slide deck. You can download the PowerPoint below.'
+          onMessages([
+            ...previousMessages,
+            userMsg,
+            {
+              ...pendingReply,
+              body,
+              streaming: false,
+              resource: data,
+              resourceTopic: text,
+            },
+          ])
+          return
+        }
+
+        if (data.type === 'pii_blocked') {
+          onMessages([
+            ...previousMessages,
+            userMsg,
+            {
+              ...pendingReply,
+              body: `I spotted pupil-identifiable details in that request. Please remove them and try again.\n\nSanitised version: ${data.sanitised}`,
+              streaming: false,
+            },
+          ])
+          return
+        }
+
+        if (data.type === 'error') {
+          onMessages([
+            ...previousMessages,
+            userMsg,
+            { ...pendingReply, body: data.message, streaming: false },
+          ])
+          return
+        }
+      }
+
       const reply = await postChat(history, text, profile)
       onMessages([...previousMessages, userMsg, { ...pendingReply, body: reply, streaming: false }])
     } catch {
@@ -82,8 +130,7 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
       >
         {!hasMessages ? (
           <div className="mx-auto max-w-2xl pt-6 md:pt-12">
-            <div className="mb-8 text-center">
-
+            <div className="text-center">
               <h2 className="font-serif text-3xl italic text-[var(--ink)]">
                 How can I help{firstName ? `, ${firstName}` : ''}?
               </h2>
@@ -91,25 +138,6 @@ export function AssistantChat({ profile, firstName, messages, onMessages }: Prop
                 Ask for a resource in plain English.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {STARTERS.map((s) => (
-                <button
-                  key={s.label}
-                  onClick={() => send(s.prompt)}
-                  className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-colors hover:border-[var(--amber-border)]"
-                >
-                  <div className="flex items-center gap-2 text-[13px] font-medium text-[var(--ink)]">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--amber)]" />
-                    {s.label}
-                  </div>
-                  <div className="mt-1 text-[11.5px] text-[var(--ink3)] group-hover:text-[var(--ink2)]">
-                    {s.prompt}
-                  </div>
-                </button>
-              ))}
-            </div>
-
           </div>
         ) : (
           <div className="mx-auto flex max-w-3xl flex-col gap-4">

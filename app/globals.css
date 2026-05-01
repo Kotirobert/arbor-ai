@@ -366,8 +366,21 @@
       max-width: none !important;
       padding: 0 !important;
     }
+    .report-section,
+    section,
+    article {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .tag {
+      background: #fff !important;
+    }
     table {
       break-inside: avoid;
+    }
+    th,
+    td {
+      color: #17201C !important;
     }
   }
 

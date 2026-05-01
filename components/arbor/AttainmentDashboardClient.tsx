@@ -178,7 +178,7 @@ export function AttainmentDashboardClient({ reportMode = false }: { reportMode?:
             <KpiCard label="Below expected" value={`${summary.belowExpectedPct}%`} helper={`${summary.belowExpected} results`} accent={summary.belowExpectedPct >= 30 ? '#ef4444' : '#f59e0b'} />
           </section>
 
-          {reportMode && <ReportOverview summary={reportSummary} uploadName={selectedUpload.fileName} />}
+          {reportMode && <ReportOverview summary={reportSummary} upload={selectedUpload} filters={filters} />}
 
           <section className="attainment-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: reportMode ? '1fr' : 'minmax(0, 1.5fr) minmax(280px, 0.85fr)', gap: 16 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -242,32 +242,142 @@ function FilterSelect({
   )
 }
 
-function ReportOverview({ summary, uploadName }: { summary: ReturnType<typeof buildReportSummary>; uploadName: string }) {
+function ReportOverview({
+  summary,
+  upload,
+  filters,
+}: {
+  summary: ReturnType<typeof buildReportSummary>
+  upload: AttainmentUpload
+  filters: Filters
+}) {
+  const activeFilters = Object.entries(filters).filter((entry): entry is [keyof Filters, string] => Boolean(entry[1]))
+
   return (
-    <section style={{ ...panelStyle, marginBottom: 16 }}>
+    <section className="report-section" style={{ ...panelStyle, marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 650 }}>SLT summary</h2>
-          <p style={{ color: 'var(--ink-2)', fontSize: 13, marginTop: 4 }}>Upload: {uploadName}</p>
+          <p style={{ color: 'var(--ink-2)', fontSize: 13, marginTop: 4 }}>
+            {scopeLabel(upload)} · Upload: {upload.fileName}
+          </p>
         </div>
         <span className="tag">{summary.subjectCount} subjects · {summary.termCount} terms</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
         <ReportFact label="Pupils" value={summary.pupilCount} helper={`${summary.recordCount} records`} />
+        <ReportFact label="Expected or above" value={`${summary.overall.exsPlusPct}%`} helper={`${summary.overall.exsPlus} results`} />
+        <ReportFact label="Greater depth" value={`${summary.overall.gdsPct}%`} helper={`${summary.overall.gds} results`} />
+        <ReportFact label="Below expected" value={`${summary.overall.belowExpectedPct}%`} helper={`${summary.overall.belowExpected} results`} />
         <ReportFact label="Strongest subject" value={summary.strongestSubject?.name ?? '-'} helper={summary.strongestSubject ? `${summary.strongestSubject.summary.exsPlusPct}% EXS+` : 'No data'} />
         <ReportFact label="Needs closest look" value={summary.weakestSubject?.name ?? '-'} helper={summary.weakestSubject ? `${summary.weakestSubject.summary.belowExpectedPct}% below expected` : 'No data'} />
         <ReportFact label="Support list" value={summary.interventionCount} helper="pupils flagged" />
       </div>
 
+      <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14, marginTop: 16 }}>
+        <p className="field__label">Report context</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          <span className="tag">{summary.termCount} terms</span>
+          <span className="tag">{summary.subjectCount} subjects</span>
+          <span className="tag">{upload.detectedSummary.pupils} pupils in upload</span>
+          {activeFilters.length === 0 ? (
+            <span className="tag">No filters applied</span>
+          ) : activeFilters.map(([key, value]) => (
+            <span key={key} className="tag">{filterLabel(key)}: {filterValueLabel(value)}</span>
+          ))}
+        </div>
+      </div>
+
+      <ReportSubjectTable rows={summary.subjectRows} />
+      <ReportMovementSummaryPanel movement={summary.movementSummary} />
+
       {summary.insights.length > 0 && (
-        <div style={{ marginTop: 16, display: 'grid', gap: 8 }}>
+        <div className="report-section" style={{ borderTop: '1px solid var(--line)', paddingTop: 14, marginTop: 16, display: 'grid', gap: 8 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 650 }}>Auto commentary</h3>
           {summary.insights.slice(0, 4).map((insight) => (
-            <p key={insight.text} style={{ color: 'var(--ink-2)', fontSize: 13, margin: 0 }}>{insight.text}</p>
+            <p key={insight.text} style={{ color: 'var(--ink-2)', fontSize: 13, margin: 0, lineHeight: 1.45 }}>{insight.text}</p>
           ))}
         </div>
       )}
     </section>
+  )
+}
+
+function ReportSubjectTable({ rows }: { rows: ReturnType<typeof buildReportSummary>['subjectRows'] }) {
+  if (rows.length === 0) return null
+
+  return (
+    <div className="report-section" style={{ borderTop: '1px solid var(--line)', paddingTop: 14, marginTop: 16 }}>
+      <h3 style={{ fontSize: 18, fontWeight: 650 }}>Subject table</h3>
+      <div style={{ overflowX: 'auto', marginTop: 10 }}>
+        <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Subject</th>
+              <th style={thStyle}>Pupils</th>
+              <th style={thStyle}>Records</th>
+              <th style={thStyle}>PRE</th>
+              <th style={thStyle}>WTS</th>
+              <th style={thStyle}>EXS+</th>
+              <th style={thStyle}>GDS</th>
+              <th style={thStyle}>Below expected</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.subject}>
+                <td style={tdStyle}>{row.subject}</td>
+                <td style={tdStyle}>{row.pupilCount}</td>
+                <td style={tdStyle}>{row.recordCount}</td>
+                <td style={tdStyle}>{row.prePct}%</td>
+                <td style={tdStyle}>{row.wtsPct}%</td>
+                <td style={tdStyle}><strong>{row.exsPlusPct}%</strong></td>
+                <td style={tdStyle}>{row.gdsPct}%</td>
+                <td style={tdStyle}>{row.belowExpectedPct}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function ReportMovementSummaryPanel({ movement }: { movement: ReturnType<typeof buildReportSummary>['movementSummary'] }) {
+  if (!movement) {
+    return (
+      <div className="report-section" style={{ borderTop: '1px solid var(--line)', paddingTop: 14, marginTop: 16 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 650 }}>Movement summary</h3>
+        <p style={emptyTextStyle}>Movement is not available because the report needs at least two comparable terms.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="report-section" style={{ borderTop: '1px solid var(--line)', paddingTop: 14, marginTop: 16 }}>
+      <h3 style={{ fontSize: 18, fontWeight: 650 }}>Movement summary</h3>
+      <p style={{ color: 'var(--ink-2)', fontSize: 13, marginTop: 4 }}>
+        Latest movement from {movement.fromTerm} to {movement.toTerm}.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginTop: 12 }}>
+        <ReportFact label="Moved up" value={movement.movedUp} helper={`${movement.total} comparable records`} />
+        <ReportFact label="Stayed same" value={movement.stayedSame} helper="stable records" />
+        <ReportFact label="Slipped back" value={movement.slippedBack} helper="review first" />
+      </div>
+      {movement.slippedExamples.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <p className="field__label">Examples to review</p>
+          <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+            {movement.slippedExamples.map((item) => (
+              <p key={`${item.pupilName}-${item.subject}`} style={{ color: 'var(--ink-2)', fontSize: 13, margin: 0 }}>
+                {item.pupilName} in {item.subject}: {item.fromBand} to {item.toBand}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -710,6 +820,33 @@ function dashboardTitle(upload: AttainmentUpload | null): string {
   if (summary.yearGroups.length === 1 && summary.classes.length <= 1) return summary.yearGroups[0]
   if (summary.yearGroups.length > 1) return 'Whole school'
   return 'Attainment dashboard'
+}
+
+function scopeLabel(upload: AttainmentUpload): string {
+  const summary = upload.detectedSummary
+  if (summary.yearGroups.length > 1) return 'Whole-school report'
+  if (summary.classes.length === 1) return `${summary.classes[0]} report`
+  if (summary.yearGroups.length === 1) return `${summary.yearGroups[0]} report`
+  return 'Attainment report'
+}
+
+function filterLabel(key: keyof Filters): string {
+  const labels: Record<keyof Filters, string> = {
+    term: 'Term',
+    subject: 'Subject',
+    yearGroup: 'Year group',
+    className: 'Class',
+    sex: 'Sex',
+    fsm: 'FSM',
+    send: 'SEND',
+    eal: 'EAL',
+    pupilPremium: 'Pupil premium',
+  }
+  return labels[key]
+}
+
+function filterValueLabel(value: string): string {
+  return value === 'true' || value === 'false' ? yesNoLabel(value) : value
 }
 
 function yesNoLabel(value: string): string {
