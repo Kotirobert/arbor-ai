@@ -1,9 +1,9 @@
-import { AuthGuard } from '@/components/platform/AuthGuard'
+import { Suspense } from 'react'
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthGuard>
+    <Suspense fallback={<div className="min-h-screen bg-[var(--paper)]" />}>
       {children}
-    </AuthGuard>
+    </Suspense>
   )
 }

@@ -132,6 +132,16 @@ export function ResourceOutput({ response, topic, onSave, saved }: Props) {
           <div>
             <p className="font-medium text-[var(--ink)]">Your presentation is ready</p>
             <p className="mt-1 text-[12px] text-[var(--ink3)]">{response.filename}</p>
+            {response.gammaUrl && (
+              <a
+                href={response.gammaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-[12px] font-medium text-[var(--amber)] hover:underline"
+              >
+                Open in Gamma
+              </a>
+            )}
           </div>
         </div>
         <div className="flex justify-end gap-2 border-t border-[var(--border)] px-5 py-3">

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSession } from '@/lib/auth/mockSession'
+import { UserMenu } from '@/components/platform/UserMenu'
 import type { UserRole } from '@/types'
 
 const CHALKAI_ROUTE = '/chalkai' as Route
@@ -23,6 +24,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
   const router       = useRouter()
   const searchParams = useSearchParams()
   const [session, setSession] = useState<ReturnType<typeof getSession>>(null)
+  const [standaloneOpen, setStandaloneOpen] = useState(false)
 
   useEffect(() => {
     setSession(getSession())
@@ -41,20 +43,40 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
   const isDashboard = pathname === '/arbor/dashboard' || (pathname?.startsWith('/arbor/pupil') ?? false)
   const isUpload    = pathname === '/arbor/upload'
   const isReport    = pathname === '/arbor/reports'
+  const isControlled = Boolean(onClose)
+  const isOpen       = isControlled ? open : standaloneOpen
+  const closeSidebar = () => {
+    if (isControlled) onClose?.()
+    else setStandaloneOpen(false)
+  }
 
   return (
-    <div className={open ? 'block' : 'hidden md:block'}>
-      <aside className="app__sidebar">
+    <>
+      {!isControlled && !isOpen && (
+        <button
+          type="button"
+          onClick={() => setStandaloneOpen(true)}
+          className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border2)] bg-[var(--paper)] text-[var(--ink)] shadow-sm md:hidden"
+          aria-label="Open menu"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+      )}
+
+      <div className={isOpen ? 'block' : 'hidden md:block'}>
+        <aside className="app__sidebar">
         {/* Brand + close button */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div className="nav__brand" style={{ fontSize: 22 }}>
             <span className="nav__brand-mark" />
             <span>ChalkAI</span>
           </div>
-          {onClose && (
+          {(isControlled || isOpen) && (
             <button
               className="flex md:hidden items-center justify-center p-1.5 rounded-md"
-              onClick={onClose}
+              onClick={closeSidebar}
               aria-label="Close sidebar"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -86,7 +108,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
           <Link
             href="/arbor/dashboard"
             className={`side-link${isDashboard ? ' side-link--active' : ''}`}
-            onClick={onClose}
+            onClick={closeSidebar}
           >
             <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
@@ -96,7 +118,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
           <Link
             href="/arbor/upload"
             className={`side-link${isUpload ? ' side-link--active' : ''}`}
-            onClick={onClose}
+            onClick={closeSidebar}
           >
             <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
@@ -106,7 +128,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
           <Link
             href={REPORT_ROUTE}
             className={`side-link${isReport ? ' side-link--active' : ''}`}
-            onClick={onClose}
+            onClick={closeSidebar}
           >
             <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -117,7 +139,7 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
           </Link>
           {onCustomise && (
             <button
-              onClick={() => { onCustomise(); onClose?.() }}
+              onClick={() => { onCustomise(); closeSidebar() }}
               className={`side-link${editMode ? ' side-link--active' : ''}`}
             >
               <svg className="ico side-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -150,17 +172,13 @@ export function ArborSidebar({ role, open = true, onClose, editMode, onCustomise
           </div>
         </div>
 
-        {/* User meta */}
-        <div className="side-meta">
-          <div className="avatar">{initials}</div>
-          <div>
-            <div style={{ fontWeight: 500 }}>
-              {session ? `${session.firstName} ${session.lastName}`.trim() : 'School lead'}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>Arbor AI</div>
-          </div>
-        </div>
-      </aside>
-    </div>
+        <UserMenu
+          initials={initials}
+          displayName={session ? `${session.firstName} ${session.lastName}`.trim() : 'School lead'}
+          subtitle="Arbor AI"
+        />
+        </aside>
+      </div>
+    </>
   )
 }

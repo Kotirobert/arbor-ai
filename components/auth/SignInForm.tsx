@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { createMockSession, getLastTool } from '@/lib/auth/mockSession'
+import { getLastTool } from '@/lib/auth/mockSession'
+import { signInWithPassword } from '@/lib/auth/supabaseAuth'
 
 export function SignInForm() {
   const router = useRouter()
@@ -12,25 +13,24 @@ export function SignInForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail || !password.trim()) {
       setError('Enter your email and password to continue.')
       return
     }
     setSubmitting(true)
-    const firstName = email.split('@')[0]?.split('.')[0] ?? 'Teacher'
-    createMockSession({
-      email,
-      firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
-      lastName: '',
-      role: 'teacher',
-    })
-    setTimeout(() => {
-      const target = getLastTool() === 'arbor' ? '/arbor/dashboard' : '/chalkai'
-      router.push(target as any)
-    }, 400)
+    const result = await signInWithPassword(trimmedEmail, password)
+    if (result.error) {
+      setError(result.error)
+      setSubmitting(false)
+      return
+    }
+
+    const target = getLastTool() === 'arbor' ? '/arbor/dashboard' : '/chalkai'
+    router.push(target as any)
   }
 
   return (

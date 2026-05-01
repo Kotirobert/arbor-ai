@@ -6,8 +6,8 @@ type Orientation = 'landscape' | 'portrait' | 'square'
 
 function sizeFor(orientation: Orientation): string {
   switch (orientation) {
-    case 'landscape': return '1792x1024'
-    case 'portrait':  return '1024x1792'
+    case 'landscape': return '1536x1024'
+    case 'portrait':  return '1024x1536'
     case 'square':    return '1024x1024'
   }
 }
@@ -27,7 +27,7 @@ export async function generateImage(
       prompt,
       n: 1,
       size: sizeFor(orientation),
-      response_format: 'b64_json',
+      output_format: 'png',
     }),
   })
 

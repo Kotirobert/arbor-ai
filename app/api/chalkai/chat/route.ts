@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { buildChatMessages } from '@/lib/chalkai/chatClient'
+import { summariseMemory } from '@/lib/chalkai/memoryStore'
+import type { MemoryPromptSummary, MemoryStoreClient } from '@/lib/chalkai/memoryStore'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import type { TeacherProfile } from '@/types'
 
 interface ChatRequestBody {
@@ -14,6 +17,22 @@ interface OpenAIChatResponse {
 
 function getApiKey(): string {
   return process.env.OPENAI_API_KEY ?? ''
+}
+
+async function loadTeacherMemory(): Promise<MemoryPromptSummary | null> {
+  try {
+    const supabase = await createServerClient()
+    const { data, error } = await supabase.auth.getUser()
+    const userId = data.user?.id
+
+    if (error || !userId) return null
+
+    const result = await summariseMemory(userId, { supabase: supabase as unknown as MemoryStoreClient })
+    if (result.error || !result.data.text.trim()) return null
+    return result.data
+  } catch {
+    return null
+  }
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -37,7 +56,8 @@ export async function POST(req: Request): Promise<NextResponse> {
     })
   }
 
-  const messages = buildChatMessages(body.history ?? [], message, body.profile)
+  const memory = await loadTeacherMemory()
+  const messages = buildChatMessages(body.history ?? [], message, body.profile, memory)
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

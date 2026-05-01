@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { createMockSession, setProfile, setLastTool } from '@/lib/auth/mockSession'
+import { setLastTool, setProfile } from '@/lib/auth/mockSession'
+import { signUpWithProfile } from '@/lib/auth/supabaseAuth'
 import type { TeacherProfile } from '@/types'
 
 const CURRICULA   = ['UK National Curriculum', 'Scottish CfE', 'Welsh Curriculum', 'IB', 'Other']
@@ -82,6 +83,7 @@ export function ProfileWizard() {
   const [step, setStep] = useState(0)
   const [state, setState] = useState<State>(INITIAL)
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const update = <K extends keyof State>(k: K, v: State[K]) => setState((s) => ({ ...s, [k]: v }))
   const toggleMulti = (k: 'yearGroups' | 'classProfile', val: string) =>
@@ -103,14 +105,24 @@ export function ProfileWizard() {
     setStep((s) => Math.min(s + 1, 3))
   }
 
-  const finish = () => {
+  const finish = async () => {
+    if (submitting) return
+    setError(null)
     const profile: TeacherProfile = {
       firstName: state.firstName, lastName: state.lastName, email: state.email,
       country: 'UK', curriculum: state.curriculum, phase: state.phase,
       yearGroups: state.yearGroups, subjects: [], classProfile: state.classProfile,
       lessonLength: state.lessonLength, outputStyle: state.outputStyle,
     }
-    createMockSession({ email: state.email, firstName: state.firstName, lastName: state.lastName, role: 'teacher' })
+
+    setSubmitting(true)
+    const result = await signUpWithProfile({ ...profile, password: state.password })
+    if (result.error) {
+      setError(result.error)
+      setSubmitting(false)
+      return
+    }
+
     setProfile(profile)
     setLastTool('chalkai')
     router.push('/chalkai' as any)
@@ -163,6 +175,15 @@ export function ProfileWizard() {
       {/* Right main */}
       <main className="auth__main">
         <div style={{ width: '100%', maxWidth: 520 }}>
+          <Link
+            href="/"
+            className="btn btn--ghost"
+            style={{ marginBottom: 32 }}
+          >
+            <svg className="ico" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+            Back to home
+          </Link>
+
           {/* Progress bars */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 36 }}>
             {STEPS.map((_, i) => (
@@ -331,8 +352,8 @@ export function ProfileWizard() {
                 <svg className="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
             ) : (
-              <button type="button" onClick={finish} className="btn btn--primary">
-                Open ChalkAI
+              <button type="button" onClick={finish} disabled={submitting} className="btn btn--primary">
+                {submitting ? 'Creating account...' : 'Open ChalkAI'}
                 <svg className="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
             )}

@@ -1,4 +1,6 @@
 import type { TeacherProfile } from '@/types'
+import type { MemoryPromptSummary } from './memoryStore'
+import { scanForPII } from './piiScanner'
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -9,6 +11,8 @@ export interface ChatHistoryMessage {
   role: 'user' | 'assistant'
   body: string
 }
+
+export const CHAT_MEMORY_BUDGET = 1200
 
 const SYSTEM_ROLE = `You are ChalkAI, an expert teaching assistant for UK school teachers.
 You help teachers create resources, plan lessons, and answer pedagogy questions.
@@ -32,15 +36,30 @@ export function buildChatMessages(
   history: ChatHistoryMessage[],
   newMessage: string,
   profile?: TeacherProfile | null,
+  memory?: MemoryPromptSummary | null,
 ): ChatMessage[] {
   const profileBlock = profile ? buildProfileBlock(profile) : ''
-  const systemContent = profileBlock ? `${SYSTEM_ROLE}\n\nTeacher profile:\n${profileBlock}` : SYSTEM_ROLE
+  const memoryBlock = buildMemoryBlock(memory)
+  const contextBlocks = [
+    profileBlock ? `Teacher profile:\n${profileBlock}` : '',
+    memoryBlock ? `Teacher memory:\n${memoryBlock}` : '',
+  ].filter(Boolean)
+  const systemContent = contextBlocks.length ? `${SYSTEM_ROLE}\n\n${contextBlocks.join('\n\n')}` : SYSTEM_ROLE
 
   return [
     { role: 'system', content: systemContent },
     ...history.map((message) => ({ role: message.role, content: message.body })),
     { role: 'user', content: newMessage },
   ]
+}
+
+function buildMemoryBlock(memory?: MemoryPromptSummary | null): string {
+  const text = memory?.text.trim()
+  if (!text) return ''
+  const pii = scanForPII(text)
+  if (pii.blocked) return ''
+  const safeText = pii.sanitised.trim()
+  return safeText.length > CHAT_MEMORY_BUDGET ? `${safeText.slice(0, CHAT_MEMORY_BUDGET - 1)}…` : safeText
 }
 
 export async function postChat(

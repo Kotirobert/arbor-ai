@@ -1,6 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import type { GenerateResponse } from '@/types'
+import { ChatResourceAttachment } from './ChatResourceAttachment'
 
 export interface ChatBubble {
   id:        string
@@ -9,6 +11,8 @@ export interface ChatBubble {
   body:      string
   streaming?: boolean
   options?:  string[]
+  resource?: GenerateResponse & { type: 'image' | 'pptx' }
+  resourceTopic?: string
   onOptionClick?: (opt: string) => void
 }
 
@@ -70,7 +74,7 @@ function renderBlocks(md: string): string {
   return out.join('')
 }
 
-export function ChatMessage({ role, title, body, streaming, options, onOptionClick }: ChatBubble) {
+export function ChatMessage({ role, title, body, streaming, options, resource, resourceTopic, onOptionClick }: ChatBubble) {
   const isUser = role === 'user'
 
   return (
@@ -100,6 +104,13 @@ export function ChatMessage({ role, title, body, streaming, options, onOptionCli
           className={cn('prose-sm space-y-1', streaming && 'caret')}
           dangerouslySetInnerHTML={{ __html: renderBlocks(body) }}
         />
+
+        {resource && (
+          <ChatResourceAttachment
+            response={resource}
+            topic={resourceTopic ?? title ?? 'ChalkAI resource'}
+          />
+        )}
 
         {options && options.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">

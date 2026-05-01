@@ -1,14 +1,13 @@
 import type { GenerateRequest, PIIFinding } from '@/types'
 import { generateText, generateJSON, getSystemRole } from './openaiClient'
 import { generateImage } from './openaiImageClient'
-import { themeAndIllustrate, type SlideContent } from './gemmaClient'
-import { buildPptx } from './pptxBuilder'
+import { generateGammaPresentation, type SlideContent } from './gammaClient'
 import { buildImagePrompt } from './templates/image'
 
 export type ModelResult =
   | { type: 'text';  output: string; piiFindings: PIIFinding[] }
   | { type: 'image'; output: string; mimeType: 'image/png' }
-  | { type: 'pptx';  output: string; filename: string }
+  | { type: 'pptx';  output: string; filename: string; gammaUrl?: string }
 
 export async function routeToModel(
   enrichedPrompt: string,
@@ -37,10 +36,9 @@ export async function routeToModel(
     case 'presentation': {
       const systemRole = getSystemRole('presentation')
       const { data } = await generateJSON<SlideContent>(systemRole, enrichedPrompt)
-      const themedDeck = await themeAndIllustrate(data)
-      const base64 = await buildPptx(themedDeck)
+      const gamma = await generateGammaPresentation(data)
       const filename = `${data.topic.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-presentation.pptx`
-      return { type: 'pptx', output: base64, filename }
+      return { type: 'pptx', output: gamma.base64, filename, gammaUrl: gamma.gammaUrl }
     }
   }
 }
