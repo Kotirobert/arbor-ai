@@ -40,6 +40,7 @@ drop policy if exists "Users manage own resources" on public.saved_resources;
 create policy "Users manage own resources"
   on public.saved_resources
   for all
+  to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
@@ -119,6 +120,10 @@ create index if not exists user_memory_items_user_kind_updated_idx
 create index if not exists user_memory_items_user_active_idx
   on public.user_memory_items (user_id, deleted_at)
   where deleted_at is null;
+
+create index if not exists user_memory_items_user_deleted_retention_idx
+  on public.user_memory_items (user_id, deleted_at)
+  where deleted_at is not null;
 
 create table if not exists public.memory_summaries (
   id uuid primary key default gen_random_uuid(),

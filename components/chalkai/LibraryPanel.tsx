@@ -8,14 +8,28 @@ import { getResourceDisplayMeta } from '@/lib/chalkai/libraryPresenter'
 
 export function LibraryPanel() {
   const [resources, setResources] = useState<SavedResource[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setResources(listResources())
+    void refreshResources()
   }, [])
 
-  function removeResource(id: string) {
-    deleteResource(id)
-    setResources(listResources())
+  async function refreshResources() {
+    setLoading(true)
+    const result = await listResources()
+    setResources(result.data)
+    setError(result.error)
+    setLoading(false)
+  }
+
+  async function removeResource(id: string) {
+    const result = await deleteResource(id)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    setResources((current) => current.filter((resource) => resource.id !== id))
   }
 
   return (
@@ -26,7 +40,17 @@ export function LibraryPanel() {
           <h1 className="font-serif text-[34px] italic leading-tight text-[var(--ink)]">Library</h1>
         </header>
 
-        {resources.length === 0 ? (
+        {error && (
+          <div className="rounded-lg border border-[var(--border2)] bg-[var(--surface)] p-4 text-[13px] text-[var(--red)]">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border2)] bg-[var(--surface)]/40 p-10 text-center text-[13px] text-[var(--ink3)]">
+            Loading saved resources...
+          </div>
+        ) : resources.length === 0 ? (
           <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border2)] bg-[var(--surface)]/40 p-10 text-center">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border2)] bg-[var(--surface)]">
               <svg className="ico ico--lg" viewBox="0 0 24 24" aria-hidden="true">
@@ -63,7 +87,7 @@ function ResourceRow({
   onRemove,
 }: {
   resource: SavedResource
-  onRemove: (id: string) => void
+  onRemove: (id: string) => Promise<void>
 }) {
   const meta = getResourceDisplayMeta(resource)
 

@@ -45,10 +45,13 @@ type QueryBuilder<T> = {
   select: (columns?: string) => QueryBuilder<T>
   insert: (values: Record<string, unknown>) => QueryBuilder<T>
   update: (values: Record<string, unknown>) => QueryBuilder<T>
+  delete: () => QueryBuilder<T>
   eq: (column: string, value: unknown) => QueryBuilder<T>
   is: (column: string, value: unknown) => QueryBuilder<T>
+  lt: (column: string, value: unknown) => QueryBuilder<T>
   order: (column: string, options?: { ascending?: boolean }) => SupabaseQueryResult<T[]>
   single: () => SupabaseMaybeSingleResult<T>
+  then: PromiseLike<{ data: T[]; error: SupabaseError }>['then']
 }
 
 export type MemoryStoreClient = {
@@ -175,6 +178,59 @@ export async function deleteMemory(
   }
 }
 
+export async function clearMemory(
+  userId: string,
+  options: MemoryStoreOptions = {},
+): Promise<MemoryStoreResult<{ deleted: number }>> {
+  const validationError = validateUserId(userId)
+  if (validationError) return { data: { deleted: 0 }, error: validationError }
+
+  const clientResult = getClient(options)
+  if (clientResult.error !== null) return { data: { deleted: 0 }, error: clientResult.error }
+
+  try {
+    const { data, error } = await clientResult.client
+      .from('user_memory_items')
+      .update({ deleted_at: options.now?.() ?? new Date().toISOString() })
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .select('id')
+
+    if (error) return { data: { deleted: 0 }, error: normaliseError(error) }
+
+    return { data: { deleted: data?.length ?? 0 }, error: null }
+  } catch (error) {
+    return { data: { deleted: 0 }, error: normaliseError(error) }
+  }
+}
+
+export async function pruneDeletedMemory(
+  userId: string,
+  olderThan: string,
+  options: MemoryStoreOptions = {},
+): Promise<MemoryStoreResult<{ deleted: number }>> {
+  const validationError = validateUserId(userId) ?? validateIsoDate(olderThan, 'Retention cutoff')
+  if (validationError) return { data: { deleted: 0 }, error: validationError }
+
+  const clientResult = getClient(options)
+  if (clientResult.error !== null) return { data: { deleted: 0 }, error: clientResult.error }
+
+  try {
+    const { data, error } = await clientResult.client
+      .from('user_memory_items')
+      .delete()
+      .eq('user_id', userId)
+      .lt('deleted_at', olderThan)
+      .select('id')
+
+    if (error) return { data: { deleted: 0 }, error: normaliseError(error) }
+
+    return { data: { deleted: data?.length ?? 0 }, error: null }
+  } catch (error) {
+    return { data: { deleted: 0 }, error: normaliseError(error) }
+  }
+}
+
 export async function summariseMemory(
   userId: string,
   options: MemoryStoreOptions = {},
@@ -222,7 +278,8 @@ function getClient(options: MemoryStoreOptions): ClientResult {
 }
 
 function validateMemoryInput(userId: string, item: NewMemoryItem): string | null {
-  if (!userId.trim()) return 'Memory userId is required'
+  const userError = validateUserId(userId)
+  if (userError) return userError
   if (!MEMORY_KINDS.has(item.kind)) return 'Memory kind is invalid'
   if (!item.key.trim()) return 'Memory key is required'
   if (!item.value || typeof item.value !== 'object' || Array.isArray(item.value)) return 'Memory value must be an object'
@@ -231,6 +288,15 @@ function validateMemoryInput(userId: string, item: NewMemoryItem): string | null
     return 'Memory confidence must be between 0 and 1'
   }
   return null
+}
+
+function validateUserId(userId: string): string | null {
+  return userId.trim() ? null : 'Memory userId is required'
+}
+
+function validateIsoDate(value: string, label: string): string | null {
+  if (!value.trim()) return `${label} is required`
+  return Number.isNaN(Date.parse(value)) ? `${label} must be an ISO date` : null
 }
 
 function mapMemoryRow(row: Record<string, unknown> | null): UserMemoryItem | null {

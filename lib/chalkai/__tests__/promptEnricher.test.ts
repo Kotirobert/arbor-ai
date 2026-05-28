@@ -52,3 +52,18 @@ it('includes year group always', () => {
   })
   expect(prompt).toContain('Year 4')
 })
+
+it('includes safe teacher memory for generation context', () => {
+  const prompt = buildEnrichedPrompt({
+    resourceType: 'lesson_plan',
+    input: 'Teach fractions',
+    profile: baseProfile,
+  }, {
+    text: 'resource_signal: saved_resource:worksheet:year-4:maths — prefers concise worksheets',
+    source: 'items',
+    itemCount: 1,
+  })
+
+  expect(prompt).toContain('[TEACHER MEMORY]')
+  expect(prompt).toContain('prefers concise worksheets')
+})

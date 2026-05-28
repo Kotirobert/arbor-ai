@@ -9,6 +9,11 @@ type SupabaseAuthClient = {
       email: string
       password: string
     }) => Promise<{ error: SupabaseAuthError }>
+    resetPasswordForEmail: (
+      email: string,
+      options: { redirectTo: string },
+    ) => Promise<{ error: SupabaseAuthError }>
+    updateUser: (attributes: { password: string }) => Promise<{ error: SupabaseAuthError }>
     signUp: (credentials: {
       email: string
       password: string
@@ -42,6 +47,41 @@ export async function signInWithPassword(
     return { error: error?.message ?? null }
   } catch (error) {
     return { error: getErrorMessage(error, 'Sign in failed.') }
+  }
+}
+
+export function buildPasswordResetCallbackUrl(origin: string): string {
+  const callbackUrl = new URL('/auth/callback', origin.endsWith('/') ? origin : `${origin}/`)
+  callbackUrl.searchParams.set('next', '/reset-password')
+  return callbackUrl.toString()
+}
+
+export async function requestPasswordReset(
+  email: string,
+  origin: string,
+  supabase?: SupabaseAuthClient,
+): Promise<AuthActionResult> {
+  try {
+    const client = supabase ?? createClient()
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: buildPasswordResetCallbackUrl(origin),
+    })
+    return { error: error?.message ?? null }
+  } catch (error) {
+    return { error: getErrorMessage(error, 'Password reset failed.') }
+  }
+}
+
+export async function updatePassword(
+  password: string,
+  supabase?: SupabaseAuthClient,
+): Promise<AuthActionResult> {
+  try {
+    const client = supabase ?? createClient()
+    const { error } = await client.auth.updateUser({ password })
+    return { error: error?.message ?? null }
+  } catch (error) {
+    return { error: getErrorMessage(error, 'Password update failed.') }
   }
 }
 

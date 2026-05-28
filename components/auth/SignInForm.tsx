@@ -101,7 +101,7 @@ export function SignInForm() {
             <div className="field">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="field__label" htmlFor="pw">Password</label>
-                <a href="#" style={{ fontSize: 12, color: 'var(--ink-2)', textDecoration: 'underline' }}>Forgot?</a>
+                <Link href={'/forgot-password' as any} style={{ fontSize: 12, color: 'var(--ink-2)', textDecoration: 'underline' }}>Forgot?</Link>
               </div>
               <input
                 className="input"

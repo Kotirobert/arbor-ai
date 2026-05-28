@@ -10,6 +10,7 @@ interface Props {
   response: GenerateResponse & { type: 'text' | 'image' | 'pptx' }
   topic:    string
   onSave:   () => void
+  onRefine: (action: string) => void
   saved?:   boolean
 }
 
@@ -61,7 +62,7 @@ function downloadBlob(base64: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url)
 }
 
-export function ResourceOutput({ response, topic, onSave, saved }: Props) {
+export function ResourceOutput({ response, topic, onSave, onRefine, saved }: Props) {
   const [streamed, setStreamed]   = useState('')
   const [streaming, setStreaming] = useState(false)
   const [copied, setCopied]       = useState(false)
@@ -186,7 +187,7 @@ export function ResourceOutput({ response, topic, onSave, saved }: Props) {
           dangerouslySetInnerHTML={{ __html: renderBlocks(streamed || response.output) }}
         />
       </div>
-      <RefinementBar onRefine={() => {}} onCopy={handleCopy} onSave={onSave} copied={copied} saved={saved} />
+      <RefinementBar onRefine={onRefine} onCopy={handleCopy} onSave={onSave} copied={copied} saved={saved} />
     </div>
   )
 }

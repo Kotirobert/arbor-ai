@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  clearMemory,
   deleteMemory,
   listMemory,
+  pruneDeletedMemory,
   saveMemory,
   summariseMemory,
   type MemoryStoreClient,
@@ -15,8 +17,10 @@ function createMemoryClient(options: {
   summaryRows?: Array<Record<string, unknown>>
   insertRow?: Record<string, unknown>
   updateRow?: Record<string, unknown>
+  deleteRows?: Array<Record<string, unknown>>
   insertError?: string
   updateError?: string
+  deleteError?: string
 } = {}) {
   const calls: Array<{ table: string; method: string; args: unknown[] }> = []
 
@@ -38,12 +42,20 @@ function createMemoryClient(options: {
         record(table, 'update', args)
         return query
       }),
+      delete: vi.fn((...args: unknown[]) => {
+        record(table, 'delete', args)
+        return query
+      }),
       eq: vi.fn((...args: unknown[]) => {
         record(table, 'eq', args)
         return query
       }),
       is: vi.fn((...args: unknown[]) => {
         record(table, 'is', args)
+        return query
+      }),
+      lt: vi.fn((...args: unknown[]) => {
+        record(table, 'lt', args)
         return query
       }),
       order: vi.fn((...args: unknown[]) => {
@@ -68,6 +80,13 @@ function createMemoryClient(options: {
           ? { message: options.insertError ?? options.updateError }
           : null,
       } satisfies QueryResult<Record<string, unknown> | null>)),
+      then: vi.fn((resolve: (value: QueryResult<Array<Record<string, unknown>>>) => unknown) => {
+        const result: QueryResult<Array<Record<string, unknown>>> = {
+          data: options.deleteRows ?? options.memoryRows ?? [],
+          error: options.deleteError ? { message: options.deleteError } : null,
+        }
+        return Promise.resolve(result).then(resolve)
+      }),
     }
 
     return query
@@ -187,6 +206,43 @@ describe('memoryStore', () => {
     })
     expect(calls).toContainEqual({ table: 'user_memory_items', method: 'eq', args: ['id', 'mem-1'] })
     expect(calls).toContainEqual({ table: 'user_memory_items', method: 'eq', args: ['user_id', 'user-1'] })
+  })
+
+  it('soft-deletes all active memory for a user when clearing memory', async () => {
+    const now = '2026-02-01T12:00:00.000Z'
+    const { client, calls } = createMemoryClient({ memoryRows: [{ id: 'mem-1' }, { id: 'mem-2' }] })
+
+    const result = await clearMemory('user-1', { supabase: client, now: () => now })
+
+    expect(result.error).toBeNull()
+    expect(result.data).toEqual({ deleted: 2 })
+    expect(calls.find((call) => call.method === 'update')).toEqual({
+      table: 'user_memory_items',
+      method: 'update',
+      args: [{ deleted_at: now }],
+    })
+    expect(calls).toContainEqual({ table: 'user_memory_items', method: 'eq', args: ['user_id', 'user-1'] })
+    expect(calls).toContainEqual({ table: 'user_memory_items', method: 'is', args: ['deleted_at', null] })
+  })
+
+  it('hard-prunes only expired deleted memory scoped to the requested user', async () => {
+    const { client, calls } = createMemoryClient({ deleteRows: [{ id: 'mem-1' }, { id: 'mem-2' }] })
+
+    const result = await pruneDeletedMemory('user-1', '2026-03-01T00:00:00.000Z', { supabase: client })
+
+    expect(result.error).toBeNull()
+    expect(result.data).toEqual({ deleted: 2 })
+    expect(calls.find((call) => call.method === 'delete')).toEqual({
+      table: 'user_memory_items',
+      method: 'delete',
+      args: [],
+    })
+    expect(calls).toContainEqual({ table: 'user_memory_items', method: 'eq', args: ['user_id', 'user-1'] })
+    expect(calls).toContainEqual({
+      table: 'user_memory_items',
+      method: 'lt',
+      args: ['deleted_at', '2026-03-01T00:00:00.000Z'],
+    })
   })
 
   it('returns compact prompt-ready summary memory when available', async () => {

@@ -52,6 +52,8 @@ describe('Supabase schema', () => {
     expect(schema).toContain('create table if not exists public.saved_resources')
     expect(schema).toContain('alter table public.profiles enable row level security')
     expect(schema).toContain('alter table public.saved_resources enable row level security')
+    expect(schema).toContain('create policy "Users manage own resources"')
+    expect(schema).toContain('to authenticated')
   })
 
   test('limits profile and resource rows to the owning user', () => {
@@ -70,6 +72,7 @@ describe('Supabase schema', () => {
     expect(schema).toContain('create policy "Users update own memory items"')
     expect(schema).toContain('create policy "Users delete own memory items"')
     expect(schema).toContain('create index if not exists user_memory_items_user_kind_updated_idx')
+    expect(schema).toContain('create index if not exists user_memory_items_user_deleted_retention_idx')
     expect(schema).toContain('create unique index if not exists memory_summaries_user_kind_idx')
   })
 })

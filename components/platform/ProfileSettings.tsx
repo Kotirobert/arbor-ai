@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { getProfile, getSession, setProfile } from '@/lib/auth/mockSession'
 import type { ChalkAiSession, TeacherProfile } from '@/types'
+import { MemorySettingsPanel } from './MemorySettingsPanel'
 
 const YEAR_GROUPS = [
   'Reception',
@@ -262,6 +263,8 @@ export function ProfileSettings({
           ))}
         </div>
       </section>
+
+      <MemorySettingsPanel />
 
       <div style={{
         display: 'flex',

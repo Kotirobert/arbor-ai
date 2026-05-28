@@ -7,7 +7,7 @@ import { GeneratorForm } from './GeneratorForm'
 import { ResourceOutput } from './ResourceOutput'
 import { PIIWarningBanner } from './PIIWarningBanner'
 import { LoadingState } from './LoadingState'
-import { saveResource } from '@/lib/chalkai/resourceStore'
+import { captureSavedResourceMemoryForCurrentUser, saveResource } from '@/lib/chalkai/resourceStore'
 import type {
   ResourceType, TeacherProfile,
   GenerateFormInput, GenerateResponse, PIIFinding,
@@ -24,6 +24,13 @@ type PanelState =
   | { status: 'done'; response: GenerateResponse & { type: 'text' | 'image' | 'pptx' }; piiFindings?: PIIFinding[]; formInput: GenerateFormInput }
   | { status: 'error'; message: string; isKeyMissing: boolean }
 
+const REFINEMENT_INSTRUCTIONS: Record<string, string> = {
+  shorter: 'Make this shorter.',
+  scaffolding: 'Add more scaffolding for lower-ability pupils.',
+  'plain-english': 'Rewrite in plain English.',
+  challenge: 'Add a challenge extension task.',
+}
+
 function profileToRequestProfile(p: TeacherProfile | null, yearGroup: string) {
   return {
     curriculum:        p?.curriculum    ?? '',
@@ -35,14 +42,28 @@ function profileToRequestProfile(p: TeacherProfile | null, yearGroup: string) {
   }
 }
 
+export function buildRefinedGenerateInput(input: GenerateFormInput, action: string): GenerateFormInput {
+  const instruction = REFINEMENT_INSTRUCTIONS[action]
+  if (!instruction) return input
+
+  return {
+    ...input,
+    topic: `${input.topic}\n\n${instruction}`,
+  }
+}
+
 export function GeneratorPanel({ profile }: Props) {
   const [selected, setSelected]   = useState<ResourceType>('lesson_plan')
   const [state, setState]         = useState<PanelState>({ status: 'idle' })
   const [saved, setSaved]         = useState(false)
   const [lastInput, setLastInput] = useState<GenerateFormInput | null>(null)
 
-  const handleGenerate = async (input: GenerateFormInput) => {
-    setLastInput(input)
+  const runGenerate = async (
+    input: GenerateFormInput,
+    options: { rememberInput?: boolean; displayInput?: GenerateFormInput } = {},
+  ) => {
+    const displayInput = options.displayInput ?? input
+    if (options.rememberInput !== false) setLastInput(displayInput)
     setState({ status: 'loading' })
 
     const body = {
@@ -88,7 +109,7 @@ export function GeneratorPanel({ profile }: Props) {
         status: 'done',
         response: data as GenerateResponse & { type: 'text' | 'image' | 'pptx' },
         piiFindings: data.type === 'text' ? data.piiFindings : [],
-        formInput: input,
+        formInput: displayInput,
       })
       setSaved(false)
     } catch {
@@ -96,18 +117,35 @@ export function GeneratorPanel({ profile }: Props) {
     }
   }
 
-  const handleSave = () => {
+  const handleGenerate = async (input: GenerateFormInput) => {
+    await runGenerate(input)
+  }
+
+  const handleRefine = async (action: string) => {
+    if (!lastInput || state.status !== 'done') return
+    const refinedInput = buildRefinedGenerateInput(lastInput, action)
+    await runGenerate(refinedInput, { rememberInput: false, displayInput: lastInput })
+  }
+
+  const handleSave = async () => {
     if (state.status !== 'done' || !lastInput) return
     const { response } = state
-    saveResource({
+    const savedResult = await saveResource({
       type:         response.type,
       resourceType: selected,
       title:        lastInput.topic,
       output:       response.output,
       createdAt: new Date().toISOString(),
     })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    if (savedResult.data) {
+      void captureSavedResourceMemoryForCurrentUser(savedResult.data, {
+        yearGroup: lastInput.yearGroup,
+        subject: lastInput.subject,
+        outputStyle: profile?.outputStyle,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    }
   }
 
   return (
@@ -188,6 +226,7 @@ export function GeneratorPanel({ profile }: Props) {
               response={state.response}
               topic={lastInput?.topic ?? ''}
               onSave={handleSave}
+              onRefine={handleRefine}
               saved={saved}
             />
           </div>

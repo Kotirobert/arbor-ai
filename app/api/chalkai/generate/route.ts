@@ -4,6 +4,25 @@ import { scanForPII } from '@/lib/chalkai/piiScanner'
 import { buildEnrichedPrompt } from '@/lib/chalkai/promptEnricher'
 import { routeToModel } from '@/lib/chalkai/modelRouter'
 import { isConfigured } from '@/lib/chalkai/openaiClient'
+import { summariseMemory } from '@/lib/chalkai/memoryStore'
+import type { MemoryPromptSummary, MemoryStoreClient } from '@/lib/chalkai/memoryStore'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+
+async function loadTeacherMemory(): Promise<MemoryPromptSummary | null> {
+  try {
+    const supabase = await createServerClient()
+    const { data, error } = await supabase.auth.getUser()
+    const userId = data.user?.id
+
+    if (error || !userId) return null
+
+    const result = await summariseMemory(userId, { supabase: supabase as unknown as MemoryStoreClient })
+    if (result.error || !result.data.text.trim()) return null
+    return result.data
+  } catch {
+    return null
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function POST(req: NextRequest): Promise<NextResponse<any>> {
@@ -35,7 +54,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<any>> {
   }
 
   const sanitisedBody: GenerateRequest = { ...body, input: piiResult.sanitised }
-  const enrichedPrompt = buildEnrichedPrompt(sanitisedBody)
+  const memory = await loadTeacherMemory()
+  const enrichedPrompt = buildEnrichedPrompt(sanitisedBody, memory)
 
   try {
     const result = await routeToModel(enrichedPrompt, sanitisedBody)

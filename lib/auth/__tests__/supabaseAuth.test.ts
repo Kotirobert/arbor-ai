@@ -1,10 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
-import { signInWithPassword, signOutOfSupabase, signUpWithProfile } from '../supabaseAuth'
+import {
+  buildPasswordResetCallbackUrl,
+  requestPasswordReset,
+  signInWithPassword,
+  signOutOfSupabase,
+  signUpWithProfile,
+  updatePassword,
+} from '../supabaseAuth'
 
 function createSupabaseStub() {
   return {
     auth: {
       signInWithPassword: vi.fn().mockResolvedValue({ error: null }),
+      resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
+      updateUser: vi.fn().mockResolvedValue({ error: null }),
       signUp: vi.fn().mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
@@ -118,5 +127,31 @@ describe('Supabase auth helpers', () => {
     await expect(signOutOfSupabase(supabase)).resolves.toEqual({ error: null })
 
     expect(supabase.auth.signOut).toHaveBeenCalled()
+  })
+
+  it('builds the password reset callback URL through the auth callback route', () => {
+    expect(buildPasswordResetCallbackUrl('https://chalkai.example/')).toBe(
+      'https://chalkai.example/auth/callback?next=%2Freset-password',
+    )
+  })
+
+  it('requests a password reset email with the reset-password redirect', async () => {
+    const supabase = createSupabaseStub()
+
+    await expect(requestPasswordReset('ada@school.org', 'https://chalkai.example', supabase)).resolves.toEqual({
+      error: null,
+    })
+
+    expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith('ada@school.org', {
+      redirectTo: 'https://chalkai.example/auth/callback?next=%2Freset-password',
+    })
+  })
+
+  it('updates the password through Supabase auth', async () => {
+    const supabase = createSupabaseStub()
+
+    await expect(updatePassword('new-password', supabase)).resolves.toEqual({ error: null })
+
+    expect(supabase.auth.updateUser).toHaveBeenCalledWith({ password: 'new-password' })
   })
 })

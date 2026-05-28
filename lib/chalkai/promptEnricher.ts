@@ -4,6 +4,8 @@ import { buildTemplate as worksheet } from './templates/worksheet'
 import { buildTemplate as quiz } from './templates/quiz'
 import { buildTemplate as parentLetter } from './templates/parentLetter'
 import { buildTemplate as presentation } from './templates/presentation'
+import type { MemoryPromptSummary } from './memoryStore'
+import { scanForPII } from './piiScanner'
 
 const SYSTEM_ROLES: Record<ResourceType, string> = {
   lesson_plan:  'You are an expert teaching assistant specialising in lesson design.',
@@ -13,6 +15,8 @@ const SYSTEM_ROLES: Record<ResourceType, string> = {
   image:        'You are a creative illustrator producing educational images for classroom use.',
   presentation: 'You are an expert teaching assistant specialising in classroom presentations. You output only valid JSON.',
 }
+
+const MEMORY_BUDGET = 1200
 
 function templateFor(type: ResourceType): string {
   switch (type) {
@@ -25,7 +29,7 @@ function templateFor(type: ResourceType): string {
   }
 }
 
-export function buildEnrichedPrompt(req: GenerateRequest): string {
+export function buildEnrichedPrompt(req: GenerateRequest, memory?: MemoryPromptSummary | null): string {
   const { resourceType, input, profile, resourceSpecificFields = {} } = req
 
   const contextLines: string[] = [
@@ -53,6 +57,11 @@ export function buildEnrichedPrompt(req: GenerateRequest): string {
     parts.push(`[RESOURCE TEMPLATE]\n${template}`)
   }
 
+  const memoryBlock = buildMemoryBlock(memory)
+  if (memoryBlock) {
+    parts.push(`[TEACHER MEMORY]\n${memoryBlock}`)
+  }
+
   parts.push(
     `[TEACHER REQUEST + CONTEXT]\n${contextLines.join('\n')}${extraLines.length ? '\n' + extraLines.join('\n') : ''}\n\nTeacher's request: ${input}`
   )
@@ -62,4 +71,16 @@ export function buildEnrichedPrompt(req: GenerateRequest): string {
 
 export function getSystemRole(type: ResourceType): string {
   return SYSTEM_ROLES[type]
+}
+
+function buildMemoryBlock(memory?: MemoryPromptSummary | null): string {
+  const text = memory?.text.trim()
+  if (!text) return ''
+
+  const pii = scanForPII(text)
+  if (pii.blocked) return ''
+
+  return pii.sanitised.length > MEMORY_BUDGET
+    ? `${pii.sanitised.slice(0, MEMORY_BUDGET - 1)}…`
+    : pii.sanitised
 }
